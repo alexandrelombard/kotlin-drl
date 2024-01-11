@@ -2,7 +2,7 @@ package com.kdrl.dqn
 
 import com.kdrl.Step
 
-class MemoryBuffer<State, Action>(val size: Double) {
+class MemoryBuffer<State, Action>(val size: Int) {
 
     val buffer = arrayListOf<Step<State, Action>>()
 
