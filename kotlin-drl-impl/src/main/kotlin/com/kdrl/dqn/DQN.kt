@@ -1,5 +1,6 @@
 package com.kdrl.dqn
 
+import com.kdrl.DiscreteAction
 import com.kdrl.Environment
 import org.jetbrains.kotlinx.dl.api.core.GraphTrainableModel
 import org.jetbrains.kotlinx.dl.api.core.Sequential
@@ -9,15 +10,15 @@ import org.jetbrains.kotlinx.dl.api.inference.TensorFlowInferenceModel
 import kotlin.math.max
 import kotlin.random.Random
 
-class DQN<State, Action>(
-    val environment: Environment<State, Action>,
+class DQN<State, A: DiscreteAction>(
+    val environment: Environment<State, A>,
     val model: InferenceModel,
     val trainPeriod: Int = 4,
     val updateTargetModelPeriod: Int = 100,
     val batchSize: Int = 1000,
     val replayMemorySize: Int = 10000) {
 
-    val replayMemory = MemoryBuffer<State, Action>(replayMemorySize)
+    val replayMemory = MemoryBuffer<State, A>(replayMemorySize)
 
     var targetModel: InferenceModel
     var stepCount = 0
@@ -26,7 +27,7 @@ class DQN<State, Action>(
         this.targetModel = this.model.copy()
     }
 
-    fun train(state: State, action: Action, reward: Double, newState: State) {
+    fun train(state: State, action: A, reward: Double, newState: State) {
         val action = this.act(state)
         val step = environment.step(action)
 
@@ -50,13 +51,15 @@ class DQN<State, Action>(
     var epsilonDecay = 0.001
     var minEpsilon = 0.1
 
-    fun act(state: State): Action {
+    fun act(state: State): A {
         val value = max(minEpsilon, epsilon - epsilonDecay * stepCount)
 
-        if(Random.nextFloat() < epsilon) {
+        val action = if(Random.nextFloat() < epsilon) {
             // Random action
+            environment.sampleAction()
         } else {
             // Action from model
+            return model.predict(state)
         }
     }
 
