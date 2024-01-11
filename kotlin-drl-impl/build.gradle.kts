@@ -2,8 +2,6 @@ plugins {
     kotlin("jvm")
 }
 
-
-
 repositories {
     mavenCentral()
 }
@@ -11,5 +9,5 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib"))
 
-    implementation("")
+    implementation("org.jetbrains.kotlinx:kotlin-deeplearning-tensorflow:0.5.2")
 }
