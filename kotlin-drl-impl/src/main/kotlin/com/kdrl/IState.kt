@@ -1,4 +1,4 @@
 package com.kdrl
 
-interface Action {
+interface IState {
 }

@@ -1,18 +1,14 @@
 package com.kdrl.dqn
 
-import com.kdrl.DiscreteAction
-import com.kdrl.Environment
-import com.kdrl.State
-import org.jetbrains.kotlinx.dl.api.core.GraphTrainableModel
-import org.jetbrains.kotlinx.dl.api.core.Sequential
-import org.jetbrains.kotlinx.dl.api.core.TrainableModel
+import com.kdrl.IDiscreteAction
+import com.kdrl.IEnvironment
+import com.kdrl.IState
 import org.jetbrains.kotlinx.dl.api.inference.InferenceModel
-import org.jetbrains.kotlinx.dl.api.inference.TensorFlowInferenceModel
 import kotlin.math.max
 import kotlin.random.Random
 
-class DQN<S: State, A: DiscreteAction>(
-    val environment: Environment<S, A>,
+class DQN<S: IState, A: IDiscreteAction>(
+    val environment: IEnvironment<S, A>,
     val model: InferenceModel,
     val trainPeriod: Int = 4,
     val updateTargetModelPeriod: Int = 100,
@@ -60,7 +56,7 @@ class DQN<S: State, A: DiscreteAction>(
             environment.sampleAction()
         } else {
             // Action from model
-            return model.predict(listOf(state))
+            return object : IDiscreteAction { model.predict(listOf(state))) }
         }
     }
 

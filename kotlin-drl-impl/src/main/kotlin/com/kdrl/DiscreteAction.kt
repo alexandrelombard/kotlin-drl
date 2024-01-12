@@ -1,5 +1,4 @@
 package com.kdrl
 
-interface DiscreteAction: Action {
-    fun value(): Int
+class DiscreteAction(override val value: Int) : IDiscreteAction {
 }
