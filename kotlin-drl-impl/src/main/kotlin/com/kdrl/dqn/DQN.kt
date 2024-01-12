@@ -1,21 +1,21 @@
 package com.kdrl.dqn
 
-import com.kdrl.IDiscreteAction
 import com.kdrl.IEnvironment
-import com.kdrl.IState
+import com.kdrl.space.IDiscreteSpace
+import com.kdrl.space.ISpace
 import org.jetbrains.kotlinx.dl.api.inference.InferenceModel
 import kotlin.math.max
 import kotlin.random.Random
 
-class DQN<S: IState, A: IDiscreteAction>(
-    val environment: IEnvironment<S, A>,
+class DQN<Observation, ObservationSpace: ISpace<Observation>, ActionSpace: IDiscreteSpace>(
+    val environment: IEnvironment<Observation, Int, ObservationSpace, ActionSpace>,
     val model: InferenceModel,
     val trainPeriod: Int = 4,
     val updateTargetModelPeriod: Int = 100,
     val batchSize: Int = 1000,
     val replayMemorySize: Int = 10000) {
 
-    val replayMemory = MemoryBuffer<S, A>(replayMemorySize)
+    val replayMemory = MemoryBuffer<ObservationSpace, ActionSpace>(replayMemorySize)
 
     var targetModel: InferenceModel
     var stepCount = 0
@@ -24,7 +24,7 @@ class DQN<S: IState, A: IDiscreteAction>(
         this.targetModel = this.model.copy()
     }
 
-    fun train(state: S, action: A, reward: Double, newState: S) {
+    fun train(state: ObservationSpace, action: ActionSpace, reward: Double, newState: ObservationSpace) {
         val action = this.act(state)
         val step = environment.step(action)
 
@@ -48,16 +48,18 @@ class DQN<S: IState, A: IDiscreteAction>(
     var epsilonDecay = 0.001
     var minEpsilon = 0.1
 
-    fun act(state: S): A {
+    fun act(state: ObservationSpace): Int {
         val value = max(minEpsilon, epsilon - epsilonDecay * stepCount)
 
         val action = if(Random.nextFloat() < epsilon) {
             // Random action
-            environment.sampleAction()
+            environment.actionSpace.sample()
         } else {
             // Action from model
-            return object : IDiscreteAction { model.predict(listOf(state))) }
+            model.predict(listOf(state))
         }
+
+        return action
     }
 
     fun epsilonGreedyStrategy(epsilon: Double) {
