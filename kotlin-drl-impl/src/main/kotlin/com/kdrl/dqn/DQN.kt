@@ -1,9 +1,14 @@
 package com.kdrl.dqn
 
 import com.kdrl.IEnvironment
+import com.kdrl.nextStates
 import com.kdrl.rewards
 import com.kdrl.space.IDiscreteSpace
 import com.kdrl.space.ISpace
+import org.jetbrains.kotlinx.dl.api.core.Sequential
+import org.jetbrains.kotlinx.dl.api.core.layer.core.Dense
+import org.jetbrains.kotlinx.dl.api.core.layer.core.Input
+import org.jetbrains.kotlinx.dl.api.core.layer.reshaping.Flatten
 import org.jetbrains.kotlinx.dl.api.inference.InferenceModel
 import org.jetbrains.kotlinx.dl.impl.util.flattenFloats
 import org.jetbrains.kotlinx.multik.api.mk
@@ -14,6 +19,7 @@ import kotlin.random.Random
 class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
     val environment: IEnvironment<FloatArray, Int, ObservationSpace, ActionSpace>,
     val model: InferenceModel,
+    val gamma: Float = 0.95f,
     val trainPeriod: Int = 4,
     val updateTargetModelPeriod: Int = 100,
     val batchSize: Int = 1000,
@@ -26,6 +32,16 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
 
     init {
         this.targetModel = this.model.copy()
+
+        val model = Sequential.of(
+            Input(28,28,1),
+            Flatten(),
+            Dense(300),
+            Dense(100),
+            Dense(10)
+        )
+
+        model.kGraph().
     }
 
     fun train(state: FloatArray) {
@@ -36,10 +52,10 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
 
         if(stepCount % trainPeriod == 0 && this.replayMemory.size > batchSize) {
             val samples = this.replayMemory.sample(batchSize)
-            val futureRewards = this.targetModel.predict(samples.map { it.nextState }.toTypedArray().flattenFloats())
+            val futureRewards = mk.ndarray(this.targetModel.predictSoftly(samples.nextStates().toTypedArray().flattenFloats()))
 
             // Compute updated Q-values
-            val updateQValues = mk.ndarray(samples.rewards()) + gamma * futureRewards
+            val updateQValues = mk.ndarray(samples.rewards()) + gamma * futureRewards.
 
             if(stepCount % updateTargetModelPeriod == 0) {
                 this.targetModel = this.model.copy()
