@@ -5,20 +5,14 @@ import com.kdrl.nextStates
 import com.kdrl.rewards
 import com.kdrl.space.IDiscreteSpace
 import com.kdrl.space.ISpace
-import org.jetbrains.kotlinx.dl.api.core.Sequential
-import org.jetbrains.kotlinx.dl.api.core.layer.core.Dense
-import org.jetbrains.kotlinx.dl.api.core.layer.core.Input
-import org.jetbrains.kotlinx.dl.api.core.layer.reshaping.Flatten
-import org.jetbrains.kotlinx.dl.api.inference.InferenceModel
-import org.jetbrains.kotlinx.dl.impl.util.flattenFloats
-import org.jetbrains.kotlinx.multik.api.mk
-import org.jetbrains.kotlinx.multik.api.ndarray
 import kotlin.math.max
 import kotlin.random.Random
 
+import org.d
+
 class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
     val environment: IEnvironment<FloatArray, Int, ObservationSpace, ActionSpace>,
-    val model: InferenceModel,
+    val model: M,
     val gamma: Float = 0.95f,
     val trainPeriod: Int = 4,
     val updateTargetModelPeriod: Int = 100,
