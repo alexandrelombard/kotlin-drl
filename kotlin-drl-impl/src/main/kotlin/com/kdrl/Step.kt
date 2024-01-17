@@ -4,11 +4,11 @@ data class Step<State, Action>(
     val state: State,
     val action: Action,
     val nextState: State,
-    val reward: Double,
+    val reward: Float,
     val done: Boolean)
 
-fun List<Step<*, *>>.rewards(): DoubleArray {
-    return this.map { it.reward }.toTypedArray().toDoubleArray()
+fun List<Step<*, *>>.rewards(): FloatArray {
+    return this.map { it.reward }.toTypedArray().toFloatArray()
 }
 
 fun <State> List<Step<State, *>>.states(): List<State> {

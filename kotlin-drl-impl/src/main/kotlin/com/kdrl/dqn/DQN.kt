@@ -1,9 +1,7 @@
 package com.kdrl.dqn
 
 
-import com.kdrl.IEnvironment
-import com.kdrl.nextStates
-import com.kdrl.rewards
+import com.kdrl.*
 import com.kdrl.space.IDiscreteSpace
 import com.kdrl.space.ISpace
 import org.deeplearning4j.datasets.iterator.INDArrayDataSetIterator
@@ -12,6 +10,7 @@ import org.deeplearning4j.nn.api.NeuralNetwork
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
+import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.dataset.DataSet
 import org.nd4j.linalg.dataset.api.iterator.DataSetIteratorFactory
 import org.nd4j.linalg.factory.Nd4j
@@ -51,10 +50,11 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
 
         if(stepCount % trainPeriod == 0 && this.replayMemory.size > batchSize) {
             val samples = this.replayMemory.sample(batchSize)
-            val futureRewards = this.targetModel.output(samples.nextStates().toTypedArray().flattenFloats())
+            val futureRewards = this.targetModel.output(samples.nextStates().toINDArray())
 
             // Compute updated Q-values
-            val updateQValues = mk.ndarray(samples.rewards()) + gamma * futureRewards
+            val updateQValues = samples.rewards().toINDArray() + gamma * futureRewards.max(1)
+            val mask = samples.actions().toINDArray()
 
             if(stepCount % updateTargetModelPeriod == 0) {
                 this.targetModel.setParams(this.model.params().dup())
@@ -76,11 +76,10 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
             environment.actionSpace.sample()
         } else {
             // Action from model
-            val features = Nd4j.create(listOf(state).toTypedArray())
-            val labels = Nd4j.create(0)
-            val dataSetIterator = INDArrayDataSetIterator(listOf(org.nd4j.common.primitives.Pair(features, labels)), 1)
-            model.evaluate(dataSetIterator)
-            model.predict(listOf(state).toTypedArray().flattenFloats())
+            val input = listOf(state).toINDArray()
+            val output = model.output(input)
+
+            output.argMax().getInt(0)
         }
 
         return action
