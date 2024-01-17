@@ -14,4 +14,5 @@ dependencies {
 //    implementation("org.jetbrains.kotlinx:kotlin-deeplearning-tensorflow:0.5.2")
 
     implementation(project(":kotlin-dl-utils"))
+    implementation(project(":kotlin-gym"))
 }
