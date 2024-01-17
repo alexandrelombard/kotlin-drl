@@ -1,18 +1,26 @@
 package com.kdrl.dqn
 
+
 import com.kdrl.IEnvironment
 import com.kdrl.nextStates
 import com.kdrl.rewards
 import com.kdrl.space.IDiscreteSpace
 import com.kdrl.space.ISpace
+import org.deeplearning4j.datasets.iterator.INDArrayDataSetIterator
+import org.deeplearning4j.nn.api.Model
+import org.deeplearning4j.nn.api.NeuralNetwork
+import org.deeplearning4j.nn.conf.MultiLayerConfiguration
+import org.deeplearning4j.nn.conf.NeuralNetConfiguration
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
+import org.nd4j.linalg.dataset.DataSet
+import org.nd4j.linalg.dataset.api.iterator.DataSetIteratorFactory
+import org.nd4j.linalg.factory.Nd4j
 import kotlin.math.max
 import kotlin.random.Random
 
-import org.d
-
 class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
     val environment: IEnvironment<FloatArray, Int, ObservationSpace, ActionSpace>,
-    val model: M,
+    multiLayerConfiguration: MultiLayerConfiguration,
     val gamma: Float = 0.95f,
     val trainPeriod: Int = 4,
     val updateTargetModelPeriod: Int = 100,
@@ -21,21 +29,18 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
 
     val replayMemory = MemoryBuffer<FloatArray, Int>(replayMemorySize)
 
-    var targetModel: InferenceModel
+    var model: MultiLayerNetwork
+    var targetModel: MultiLayerNetwork
+
     var stepCount = 0
 
     init {
-        this.targetModel = this.model.copy()
+        this.model = MultiLayerNetwork(multiLayerConfiguration)
+        this.model.init()
 
-        val model = Sequential.of(
-            Input(28,28,1),
-            Flatten(),
-            Dense(300),
-            Dense(100),
-            Dense(10)
-        )
-
-        model.kGraph().
+        this.targetModel = MultiLayerNetwork(multiLayerConfiguration)
+        this.targetModel.setParams(this.model.params().dup())
+        this.targetModel.init() // FIXME Check if this should be done before params copy
     }
 
     fun train(state: FloatArray) {
@@ -46,13 +51,13 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
 
         if(stepCount % trainPeriod == 0 && this.replayMemory.size > batchSize) {
             val samples = this.replayMemory.sample(batchSize)
-            val futureRewards = mk.ndarray(this.targetModel.predictSoftly(samples.nextStates().toTypedArray().flattenFloats()))
+            val futureRewards = this.targetModel.output(samples.nextStates().toTypedArray().flattenFloats())
 
             // Compute updated Q-values
-            val updateQValues = mk.ndarray(samples.rewards()) + gamma * futureRewards.
+            val updateQValues = mk.ndarray(samples.rewards()) + gamma * futureRewards
 
             if(stepCount % updateTargetModelPeriod == 0) {
-                this.targetModel = this.model.copy()
+                this.targetModel.setParams(this.model.params().dup())
             }
         }
 
@@ -71,6 +76,10 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
             environment.actionSpace.sample()
         } else {
             // Action from model
+            val features = Nd4j.create(listOf(state).toTypedArray())
+            val labels = Nd4j.create(0)
+            val dataSetIterator = INDArrayDataSetIterator(listOf(org.nd4j.common.primitives.Pair(features, labels)), 1)
+            model.evaluate(dataSetIterator)
             model.predict(listOf(state).toTypedArray().flattenFloats())
         }
 
