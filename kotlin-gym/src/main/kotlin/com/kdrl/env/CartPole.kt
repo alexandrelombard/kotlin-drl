@@ -27,20 +27,26 @@ class CartPole : IEnvironment<FloatArray, Int, Box<FloatArray>, Discrete> {
     }
 
     override fun step(action: Int): Step<FloatArray, Int> {
+        var done = false
+
         // Check termination conditions
-        if(state.poleAngle < -12 || state.poleAngle > 12) {
-
-        }
-
-        if(state.position < -2.4 || state.position > 2.4) {
-
-        }
-
-        if(episodeLength >= 500) {
-
+        if(state.poleAngle < -12 || state.poleAngle > 12 ||
+            state.position < -2.4 || state.position > 2.4 ||
+            episodeLength > 100) {
+            done = true
         }
 
         // Update the state according to the action
+        episodeLength += 1
+        var state = this.state
+        var nextState = this.state
+
+        this.state = nextState
+
+        // Compute the reward
+        val reward = episodeLength.toFloat()
+
+        return Step(state.toObservation(), action, nextState.toObservation(), reward, done)
     }
 
     data class InternalState(var position: Float = 0f, var velocity: Float = 0f, var poleAngle: Float = 0.0f, var poleAngularVelocity: Float = 0.0f) {
