@@ -41,16 +41,13 @@ class PerceptronTest {
         val labels = Nd4j.create(trainingSetSize, 1)
 
         for(i in 0 until trainingSetSize) {
-//            val f1 = Random.nextInt(0, 2)
-//            val f2 = Random.nextInt(0, 2)
-//            val l = f1 xor f2
             val f1 = Random.nextFloat() * 100
             val f2 = Random.nextFloat() * 100
             val l = f1 * 5 + f2
 
-            features.putScalar(intArrayOf(i, 0), f1.toFloat())
-            features.putScalar(intArrayOf(i, 1), f2.toFloat())
-            labels.putScalar(intArrayOf(i, 0), l.toFloat())
+            features.putScalar(intArrayOf(i, 0), f1)
+            features.putScalar(intArrayOf(i, 1), f2)
+            labels.putScalar(intArrayOf(i, 0), l)
         }
 
         // Train the neural net
@@ -59,10 +56,6 @@ class PerceptronTest {
         }
 
         // Try prediction
-//        val testFeature = Nd4j.create(floatArrayOf(1.0f, 0.0f))
-//        val testLabel = Nd4j.create(floatArrayOf(1.0f))
-//        val dataSetIterator = INDArrayDataSetIterator(listOf(Pair(testFeature, testLabel)), 1)
-
         for(i in 0 until 100) {
             val testData = Nd4j.zeros(1, 2)
             val x0 = Random.nextFloat() * 100

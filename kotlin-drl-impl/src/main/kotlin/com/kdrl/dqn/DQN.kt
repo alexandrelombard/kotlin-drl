@@ -4,16 +4,8 @@ package com.kdrl.dqn
 import com.kdrl.*
 import com.kdrl.space.IDiscreteSpace
 import com.kdrl.space.ISpace
-import org.deeplearning4j.datasets.iterator.INDArrayDataSetIterator
-import org.deeplearning4j.nn.api.Model
-import org.deeplearning4j.nn.api.NeuralNetwork
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration
-import org.deeplearning4j.nn.conf.NeuralNetConfiguration
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
-import org.nd4j.linalg.api.ndarray.INDArray
-import org.nd4j.linalg.dataset.DataSet
-import org.nd4j.linalg.dataset.api.iterator.DataSetIteratorFactory
-import org.nd4j.linalg.factory.Nd4j
 import kotlin.math.max
 import kotlin.random.Random
 
@@ -53,9 +45,15 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
             val futureRewards = this.targetModel.output(samples.nextStates().toINDArray())
 
             // Compute updated Q-values
-            val updateQValues = samples.rewards().toINDArray() + gamma * futureRewards.max(1)
-            val mask = samples.actions().toINDArray()
+            val updatedQValues = samples.rewards().toINDArray() + gamma * futureRewards.max(1)
+            val masks = samples.actions().toINDArray()
 
+            // Fit the model
+            val qValues = model.output(samples.states().toINDArray())
+            val qAction = qValues.mul(masks).sum(1)
+            model.fit(updatedQValues, qAction)
+
+            // Eventually update the target model
             if(stepCount % updateTargetModelPeriod == 0) {
                 this.targetModel.setParams(this.model.params().dup())
             }
@@ -83,9 +81,5 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
         }
 
         return action
-    }
-
-    fun epsilonGreedyStrategy(epsilon: Double) {
-
     }
 }
