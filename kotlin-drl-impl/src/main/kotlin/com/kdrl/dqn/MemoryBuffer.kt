@@ -2,14 +2,17 @@ package com.kdrl.dqn
 
 import com.kdrl.Step
 
-class MemoryBuffer<State, Action>(val size: Int) {
+class MemoryBuffer<State, Action>(val maxSize: Int) {
 
     val buffer = arrayListOf<Step<State, Action>>()
+
+    val size: Int
+        get() = this.buffer.size
 
     fun push(step: Step<State, Action>) {
         buffer.add(step)
 
-        if(buffer.size >= size) {
+        if(buffer.size >= maxSize) {
             buffer.removeFirst()
         }
     }
