@@ -34,7 +34,22 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
         this.targetModel.init() // FIXME Check if this should be done before params copy
     }
 
-    fun train(state: FloatArray) {
+    fun train(episode: Int = 1000) {
+        for(i in 0 until episode) {
+            println("Episode #${i} starting...")
+            var state = environment.reset()
+            var done = false
+
+            while (!done) {
+                val step = trainStep(state)
+                done = step.done
+            }
+
+            println("Episode #${i} done")
+        }
+    }
+
+    fun trainStep(state: FloatArray): Step<FloatArray, Int> {
         val action = this.act(state)
         val step = environment.step(action)
 
@@ -60,6 +75,8 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
         }
 
         stepCount++
+
+        return step
     }
 
     var epsilon = 1.0

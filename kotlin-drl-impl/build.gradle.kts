@@ -15,4 +15,10 @@ dependencies {
 
     implementation(project(":kotlin-dl-utils"))
     implementation(project(":kotlin-gym"))
+
+    testImplementation("org.jetbrains.kotlin:kotlin-test")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
