@@ -64,7 +64,7 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
 
             // Compute updated Q-values
             val updatedQValues = samples.rewards().toINDArray() + gamma * futureRewards.max(1)
-            val masks = samples.actions().toTypedArray().toIntArray().toINDArray()
+            val masks = samples.actions().toTypedArray().toIntArray().toINDArray().reshape(batchSize.toLong(), 1)
 
             // Fit the model
             val qValues = model.output(samples.states().toINDArray())
