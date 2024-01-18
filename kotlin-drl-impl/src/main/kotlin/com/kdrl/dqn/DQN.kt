@@ -6,6 +6,8 @@ import com.kdrl.space.IDiscreteSpace
 import com.kdrl.space.ISpace
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
+import org.nd4j.linalg.api.ndarray.INDArray
+import org.nd4j.linalg.factory.ops.NDBase
 import kotlin.math.max
 import kotlin.random.Random
 
@@ -64,12 +66,14 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
 
             // Compute updated Q-values
             val updatedQValues = samples.rewards().toINDArray() + gamma * futureRewards.max(1)
-            val masks = samples.actions().toTypedArray().toIntArray().toINDArray().reshape(batchSize.toLong(), 1)
-
+//            val masks = samples.actions().toTypedArray().toIntArray().toINDArray().reshape(batchSize.toLong(), 1)
+            val masks = NDBase().oneHot(samples.actions().toTypedArray().toIntArray().toINDArray(), 2, 1, 0.0, 1.0)
             // Fit the model
             val qValues = model.output(samples.states().toINDArray())
             val qAction = qValues.mul(masks).sum(1)
-            model.fit(updatedQValues, qAction)
+
+            // FIXME
+            model.fit(updatedQValues.reshape(batchSize.toLong(), 1), qAction.reshape(batchSize.toLong(), 1))
 
             // Eventually update the target model
             if(stepCount % updateTargetModelPeriod == 0) {
