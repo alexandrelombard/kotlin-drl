@@ -7,6 +7,7 @@ import com.kdrl.space.ISpace
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
 import org.nd4j.linalg.api.ndarray.INDArray
+import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.factory.ops.NDBase
 import kotlin.math.max
 import kotlin.random.Random
@@ -66,14 +67,19 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
 
             // Compute updated Q-values
             val updatedQValues = samples.rewards().toINDArray() + gamma * futureRewards.max(1)
-//            val masks = samples.actions().toTypedArray().toIntArray().toINDArray().reshape(batchSize.toLong(), 1)
+
+            // Create a mask for action that were performed
             val masks = NDBase().oneHot(samples.actions().toTypedArray().toIntArray().toINDArray(), 2, 1, 0.0, 1.0)
-            // Fit the model
+            val invertedMasks = Nd4j.onesLike(masks) - masks
+
+            // Fit the model by computing the expected q-values
             val qValues = model.output(samples.states().toINDArray())
-            val qAction = qValues.mul(masks).sum(1)
+            val qAction = qValues.mul(masks)
+
+            val update = qAction + invertedMasks.mul(updatedQValues.reshape(100, 1))
 
             // FIXME
-            model.fit(updatedQValues.reshape(batchSize.toLong(), 1), qAction.reshape(batchSize.toLong(), 1))
+            model.fit(samples.states().toINDArray(), update)
 
             // Eventually update the target model
             if(stepCount % updateTargetModelPeriod == 0) {

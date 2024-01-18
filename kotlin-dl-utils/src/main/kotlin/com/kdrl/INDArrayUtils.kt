@@ -19,6 +19,10 @@ operator fun INDArray.plus(i: INDArray): INDArray {
     return this.add(i)
 }
 
+operator fun INDArray.minus(i: INDArray): INDArray {
+    return this.sub(i)
+}
+
 operator fun INDArray.times(n: Number): INDArray {
     return this.mul(n)
 }
