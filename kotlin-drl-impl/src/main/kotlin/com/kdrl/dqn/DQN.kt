@@ -39,13 +39,16 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
             println("Episode #${i} starting...")
             var state = environment.reset()
             var done = false
+            var cumulativeReward = 0.0
 
             while (!done) {
                 val step = trainStep(state)
+                state = step.nextState
                 done = step.done
+                cumulativeReward += step.reward
             }
 
-            println("Episode #${i} done")
+            println("Episode #${i} done (cumulative reward: $cumulativeReward)")
         }
     }
 
