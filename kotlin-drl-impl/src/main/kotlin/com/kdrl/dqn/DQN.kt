@@ -51,7 +51,7 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
                 cumulativeReward += step.reward
             }
 
-            println("Episode #${i} done (cumulative reward: $cumulativeReward)")
+            println("Episode #${i} done (cumulative reward: $cumulativeReward, epsilon: $epsilon)")
         }
     }
 
@@ -93,13 +93,13 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
     }
 
     var epsilon = 1.0
-    var epsilonDecay = 0.001
+    var epsilonDecay = 1e-5
     var minEpsilon = 0.1
 
     fun act(state: FloatArray): Int {
-        val epsilonValue = max(minEpsilon, epsilon - epsilonDecay * stepCount)
+        this.epsilon = max(minEpsilon, epsilon - epsilonDecay)
 
-        val action = if(Random.nextFloat() < epsilonValue) {
+        val action = if(Random.nextFloat() < this.epsilon) {
             // Random action
             environment.actionSpace.sample()
         } else {
