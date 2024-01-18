@@ -16,6 +16,8 @@ class CartPole(
     val forceMag: Float = 10.0f,
     val tau: Float = 0.02f) : IEnvironment<FloatArray, Int, Box<FloatArray>, Discrete> {
 
+    val description = "Reproduction in Kotlin of the environment CartPole-v1"
+
     val totalMass = massCart + massPole
     val poleMassLength = massPole + length
 
