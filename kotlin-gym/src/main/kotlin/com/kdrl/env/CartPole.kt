@@ -48,7 +48,7 @@ class CartPole(
         // Check termination conditions
         if(state.poleAngle < -12 || state.poleAngle > 12 ||
             state.position < -2.4 || state.position > 2.4 ||
-            episodeLength > 100) {
+            episodeLength > 500) {
             done = true
         }
 
@@ -73,7 +73,7 @@ class CartPole(
         this.state = nextState
 
         // Compute the reward
-        val reward = 1.0f
+        val reward = if(done && episodeLength < 500) 0.0f else 1.0f
 
         return Step(state.toObservation(), action, nextState.toObservation(), reward, done)
     }

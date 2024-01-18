@@ -93,7 +93,7 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
     }
 
     var epsilon = 1.0
-    var epsilonDecay = 1e-5
+    var epsilonDecay = 2e-5
     var minEpsilon = 0.1
 
     fun act(state: FloatArray): Int {

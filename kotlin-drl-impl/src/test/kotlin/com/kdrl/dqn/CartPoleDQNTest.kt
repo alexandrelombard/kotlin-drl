@@ -5,6 +5,7 @@ import org.deeplearning4j.nn.api.OptimizationAlgorithm
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration
 import org.deeplearning4j.nn.conf.layers.DenseLayer
 import org.deeplearning4j.nn.conf.layers.OutputLayer
+import org.nd4j.linalg.learning.config.Adam
 import kotlin.test.Test
 
 class CartPoleDQNTest {
@@ -12,6 +13,7 @@ class CartPoleDQNTest {
     fun testCartPoleDQN() {
         val environment = CartPole()
         val multiLayerConfiguration = NeuralNetConfiguration.Builder()
+            .updater(Adam(0.001))
             .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
             .list(
                 DenseLayer.Builder().nIn(4).nOut(16).build(),
