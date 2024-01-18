@@ -14,10 +14,9 @@ class CartPoleDQNTest {
         val multiLayerConfiguration = NeuralNetConfiguration.Builder()
             .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
             .list(
-                DenseLayer.Builder().nIn(4).build(),
-                DenseLayer.Builder().nIn(16).build(),
-                DenseLayer.Builder().nIn(8).build(),
-                OutputLayer.Builder().nOut(environment.actionSpace.size).build()
+                DenseLayer.Builder().nIn(4).nOut(16).build(),
+                DenseLayer.Builder().nIn(16).nOut(8).build(),
+                OutputLayer.Builder().nIn(8).nOut(environment.actionSpace.size).build()
             )
             .build()
         val dqn = DQN(environment, multiLayerConfiguration)

@@ -15,7 +15,7 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
     val gamma: Float = 0.95f,
     val trainPeriod: Int = 4,
     val updateTargetModelPeriod: Int = 100,
-    val batchSize: Int = 1000,
+    val batchSize: Int = 100,
     val replayMemorySize: Int = 10000) {
 
     val replayMemory = MemoryBuffer<FloatArray, Int>(replayMemorySize)
@@ -30,8 +30,8 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
         this.model.init()
 
         this.targetModel = MultiLayerNetwork(multiLayerConfiguration)
+        this.targetModel.init()
         this.targetModel.setParams(this.model.params().dup())
-        this.targetModel.init() // FIXME Check if this should be done before params copy
     }
 
     fun train(episode: Int = 1000) {
@@ -64,7 +64,7 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
 
             // Compute updated Q-values
             val updatedQValues = samples.rewards().toINDArray() + gamma * futureRewards.max(1)
-            val masks = samples.actions().toINDArray()
+            val masks = samples.actions().toTypedArray().toIntArray().toINDArray()
 
             // Fit the model
             val qValues = model.output(samples.states().toINDArray())

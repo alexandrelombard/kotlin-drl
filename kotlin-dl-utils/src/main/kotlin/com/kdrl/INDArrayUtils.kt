@@ -15,10 +15,6 @@ fun List<FloatArray>.toINDArray(): INDArray {
     return Nd4j.create(this.toTypedArray())
 }
 
-fun List<Int>.toINDArray(): INDArray {
-    return this.toTypedArray().toIntArray().toINDArray()
-}
-
 operator fun INDArray.plus(i: INDArray): INDArray {
     return this.add(i)
 }
