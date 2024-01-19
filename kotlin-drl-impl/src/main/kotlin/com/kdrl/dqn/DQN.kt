@@ -76,7 +76,8 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
             val qValues = model.output(samples.states().toINDArray())
             val qAction = qValues.mul(masks)
 
-            val update = qAction + invertedMasks.mul(updatedQValues.reshape(100, 1))
+            // val update = qAction + invertedMasks.mul(updatedQValues.reshape(batchSize.toLong(), 1))
+            val update = qValues + invertedMasks.mul(updatedQValues.reshape(batchSize.toLong(), 1))
 
             // FIXME
             model.fit(samples.states().toINDArray(), update)
