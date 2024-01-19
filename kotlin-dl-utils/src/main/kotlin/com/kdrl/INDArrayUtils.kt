@@ -11,6 +11,10 @@ fun IntArray.toINDArray(): INDArray {
     return Nd4j.createFromArray(*this)
 }
 
+fun BooleanArray.toINDArray(): INDArray {
+    return Nd4j.create(this)
+}
+
 fun List<FloatArray>.toINDArray(): INDArray {
     return Nd4j.create(this.toTypedArray())
 }

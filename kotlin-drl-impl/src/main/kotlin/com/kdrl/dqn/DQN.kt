@@ -6,6 +6,7 @@ import com.kdrl.space.IDiscreteSpace
 import com.kdrl.space.ISpace
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
+import org.nd4j.linalg.api.buffer.DataType
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.factory.ops.NDBase
@@ -15,11 +16,11 @@ import kotlin.random.Random
 class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
     val environment: IEnvironment<FloatArray, Int, ObservationSpace, ActionSpace>,
     multiLayerConfiguration: MultiLayerConfiguration,
-    val gamma: Float = 0.95f,
+    val gamma: Float = 0.99f,
     val trainPeriod: Int = 4,
     val updateTargetModelPeriod: Int = 100,
     val batchSize: Int = 100,
-    val replayMemorySize: Int = 10000) {
+    val replayMemorySize: Int = 2000) {
 
     val replayMemory = MemoryBuffer<FloatArray, Int>(replayMemorySize)
 
@@ -63,10 +64,14 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
 
         if(stepCount % trainPeriod == 0 && this.replayMemory.size > batchSize) {
             val samples = this.replayMemory.sample(batchSize)
+
             val futureRewards = this.targetModel.output(samples.nextStates().toINDArray())
+            val rewards = samples.rewards().toINDArray()
+            val done = samples.done().toINDArray().castTo(DataType.INT32)
+            val notDone = Nd4j.onesLike(done) - done
 
             // Compute updated Q-values
-            val updatedQValues = samples.rewards().toINDArray() + gamma * futureRewards.max(1)
+            val updatedQValues = rewards.muli(done) + (rewards + gamma * futureRewards.max(1)).muli(notDone)
 
             // Create a mask for action that were performed
             val masks = NDBase().oneHot(samples.actions().toTypedArray().toIntArray().toINDArray(), 2, 1, 0.0, 1.0)
