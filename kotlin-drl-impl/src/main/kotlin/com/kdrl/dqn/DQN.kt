@@ -19,7 +19,7 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
     val gamma: Float = 0.99f,
     val trainPeriod: Int = 1,
     val updateTargetModelPeriod: Int = 2,
-    val batchSize: Int = 100,
+    val batchSize: Int = 128,
     val replayMemorySize: Int = 10000) {
 
     val replayMemory = MemoryBuffer<FloatArray, Int>(replayMemorySize)
@@ -98,7 +98,7 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
 
     var epsilon = 1.0
     var epsilonDecay = 2e-5
-    var minEpsilon = 0.1
+    var minEpsilon = 0.05
 
     fun act(state: FloatArray): Int {
         this.epsilon = max(minEpsilon, epsilon - epsilonDecay)
