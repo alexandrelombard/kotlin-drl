@@ -17,10 +17,10 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
     val environment: IEnvironment<FloatArray, Int, ObservationSpace, ActionSpace>,
     multiLayerConfiguration: MultiLayerConfiguration,
     val gamma: Float = 0.99f,
-    val trainPeriod: Int = 4,
-    val updateTargetModelPeriod: Int = 100,
+    val trainPeriod: Int = 1,
+    val updateTargetModelPeriod: Int = 2,
     val batchSize: Int = 100,
-    val replayMemorySize: Int = 2000) {
+    val replayMemorySize: Int = 10000) {
 
     val replayMemory = MemoryBuffer<FloatArray, Int>(replayMemorySize)
 

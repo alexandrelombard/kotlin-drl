@@ -14,7 +14,7 @@ class CartPole(
     val massPole: Float = 1.0f,
     val length: Float = 0.5f,
     val forceMag: Float = 10.0f,
-    val maxEpisodeLength: Int = 500,
+    val maxEpisodeLength: Int = 100,
     val tau: Float = 0.02f) : IEnvironment<FloatArray, Int, Box<FloatArray>, Discrete> {
 
     val description = "Reproduction in Kotlin of the environment CartPole-v1"

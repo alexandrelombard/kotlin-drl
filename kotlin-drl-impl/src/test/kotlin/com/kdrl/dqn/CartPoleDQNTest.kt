@@ -15,12 +15,12 @@ class CartPoleDQNTest {
     fun testCartPoleDQN() {
         val environment = CartPole()
         val multiLayerConfiguration = NeuralNetConfiguration.Builder()
-            .updater(Adam(0.0001))
+            .updater(Adam(1e-4))
             .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
             .list(
-                DenseLayer.Builder().nIn(4).nOut(24).activation(Activation.RELU).build(),
-                DenseLayer.Builder().nIn(24).nOut(24).activation(Activation.RELU).build(),
-                OutputLayer.Builder().nIn(24).nOut(environment.actionSpace.size).activation(Activation.IDENTITY).lossFunction(LossFunctions.LossFunction.MSE).build()
+                DenseLayer.Builder().nIn(4).nOut(32).activation(Activation.SELU).build(),
+                DenseLayer.Builder().nIn(32).nOut(32).activation(Activation.SELU).build(),
+                OutputLayer.Builder().nIn(32).nOut(environment.actionSpace.size).activation(Activation.IDENTITY).lossFunction(LossFunctions.LossFunction.MSE).build()
             )
             .build()
         val dqn = DQN(environment, multiLayerConfiguration)
