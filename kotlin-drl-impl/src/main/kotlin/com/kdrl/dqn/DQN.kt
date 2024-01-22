@@ -24,17 +24,12 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
     val replayMemory = MemoryBuffer<FloatArray, Int>(replayMemorySize)
 
     var model: MultiLayerNetwork
-    var targetModel: MultiLayerNetwork
 
     var stepCount = 0
 
     init {
         this.model = MultiLayerNetwork(multiLayerConfiguration)
         this.model.init()
-
-        this.targetModel = MultiLayerNetwork(multiLayerConfiguration)
-        this.targetModel.init()
-        this.targetModel.setParams(this.model.params().dup())
     }
 
     override fun trainStep(state: FloatArray): Step<FloatArray, Int> {
@@ -46,7 +41,7 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
         if(stepCount % trainPeriod == 0 && this.replayMemory.size > batchSize) {
             val samples = this.replayMemory.sample(batchSize)
 
-            val futureRewards = this.targetModel.output(samples.nextStates().toINDArray())
+            val futureRewards = this.model.output(samples.nextStates().toINDArray())
             val rewards = samples.rewards().toINDArray()
             val done = samples.done().toINDArray().castTo(DataType.INT32)
             val notDone = Nd4j.onesLike(done) - done
@@ -64,11 +59,6 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
 
             model.fit(samples.states().toINDArray(), update)
 //            println("Estimated loss: ${update.squaredDistance(qValues)}")
-
-            // Eventually update the target model
-            if(stepCount % updateTargetModelPeriod == 0) {
-                this.targetModel.setParams(this.model.params().dup())
-            }
         }
 
         stepCount++

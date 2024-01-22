@@ -1,5 +1,6 @@
 package com.kdrl.dqn
 
+import com.kdrl.ddqn.DDQN
 import com.kdrl.env.CartPole
 import org.deeplearning4j.nn.api.OptimizationAlgorithm
 import org.deeplearning4j.nn.conf.BackpropType
@@ -8,14 +9,13 @@ import org.deeplearning4j.nn.conf.layers.DenseLayer
 import org.deeplearning4j.nn.conf.layers.OutputLayer
 import org.deeplearning4j.nn.weights.WeightInit
 import org.nd4j.linalg.activations.Activation
-import org.nd4j.linalg.api.ops.impl.loss.HuberLoss
 import org.nd4j.linalg.learning.config.Adam
 import org.nd4j.linalg.lossfunctions.LossFunctions
 import kotlin.test.Test
 
-class CartPoleDQNTest {
+class CartPoleDDQNTest {
     @Test
-    fun testCartPoleDQN() {
+    fun testCartPoleDDQN() {
         val innerLayersSize = 128
         val environment = CartPole(maxEpisodeLength = 500)
         val multiLayerConfiguration = NeuralNetConfiguration.Builder()
@@ -29,9 +29,9 @@ class CartPoleDQNTest {
             )
             .backpropType(BackpropType.Standard)
             .build()
-        val dqn = DQN(environment, multiLayerConfiguration)
+        val ddqn = DDQN(environment, multiLayerConfiguration)
 
-        dqn.train(1000) { episodeCount, cumulativeReward ->
+        ddqn.train(1000) { episodeCount, cumulativeReward ->
             println("$episodeCount\t$cumulativeReward")
         }
     }

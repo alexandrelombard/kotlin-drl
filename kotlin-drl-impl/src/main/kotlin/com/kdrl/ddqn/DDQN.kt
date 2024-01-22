@@ -23,27 +23,18 @@ class DDQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
 
     val replayMemory = MemoryBuffer<FloatArray, Int>(replayMemorySize)
 
-    var modelA: MultiLayerNetwork
-    var targetModelA: MultiLayerNetwork
-    var modelB: MultiLayerNetwork
-    var targetModelB: MultiLayerNetwork
+    var model: MultiLayerNetwork
+    var targetModel: MultiLayerNetwork
 
     var stepCount = 0
 
     init {
-        this.modelA = MultiLayerNetwork(multiLayerConfiguration)
-        this.modelA.init()
+        this.model = MultiLayerNetwork(multiLayerConfiguration)
+        this.model.init()
 
-        this.targetModelA = MultiLayerNetwork(multiLayerConfiguration)
-        this.targetModelA.init()
-        this.targetModelA.setParams(this.modelA.params().dup())
-
-        this.modelB = MultiLayerNetwork(multiLayerConfiguration)
-        this.modelB.init()
-
-        this.targetModelB = MultiLayerNetwork(multiLayerConfiguration)
-        this.targetModelB.init()
-        this.targetModelB.setParams(this.modelB.params().dup())
+        this.targetModel = MultiLayerNetwork(multiLayerConfiguration)
+        this.targetModel.init()
+        this.targetModel.setParams(this.model.params().dup())
     }
 
     override fun trainStep(state: FloatArray): Step<FloatArray, Int> {
@@ -55,7 +46,7 @@ class DDQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
         if(stepCount % trainPeriod == 0 && this.replayMemory.size > batchSize) {
             val samples = this.replayMemory.sample(batchSize)
 
-            val futureRewards = this.targetModelA.output(samples.nextStates().toINDArray())
+            val futureRewards = this.targetModel.output(samples.nextStates().toINDArray())
             val rewards = samples.rewards().toINDArray()
             val done = samples.done().toINDArray().castTo(DataType.INT32)
             val notDone = Nd4j.onesLike(done) - done
@@ -68,19 +59,19 @@ class DDQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
             val masks = NDBase().oneHot(samples.actions().toTypedArray().toIntArray().toINDArray(), 2, 1, 1.0, 0.0)
 
             // Fit the model by computing the expected q-values
-            val qValues = modelA.output(samples.states().toINDArray())
+            val qValues = model.output(samples.states().toINDArray())
 
             // val update = qAction + invertedMasks.mul(updatedQValues.reshape(batchSize.toLong(), 1))
             //val update = qValues + masks.mul(updatedQValues.reshape(batchSize.toLong(), 1))
             val update = ((Nd4j.onesLike(masks) - masks) * qValues) + masks.mul(updatedQValues.reshape(batchSize.toLong(), 1))
 
             // FIXME
-            modelA.fit(samples.states().toINDArray(), update)
+            model.fit(samples.states().toINDArray(), update)
 //            println("Estimated loss: ${update.squaredDistance(qValues)}")
 
             // Eventually update the target model
             if(stepCount % updateTargetModelPeriod == 0) {
-                this.targetModelA.setParams(this.modelA.params().dup())
+                this.targetModel.setParams(this.model.params().dup())
             }
         }
 
@@ -102,7 +93,7 @@ class DDQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
         } else {
             // Action from model
             val input = listOf(state).toINDArray()
-            val output = modelA.output(input)
+            val output = model.output(input)
 
             output.argMax().getInt(0)
         }
