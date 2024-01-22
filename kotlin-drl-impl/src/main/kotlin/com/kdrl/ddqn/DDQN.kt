@@ -1,4 +1,4 @@
-package com.kdrl.dqn
+package com.kdrl.ddqn
 
 
 import com.kdrl.*
@@ -12,7 +12,7 @@ import org.nd4j.linalg.factory.ops.NDBase
 import kotlin.math.max
 import kotlin.random.Random
 
-class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
+class DDQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
     override val environment: IEnvironment<FloatArray, Int, ObservationSpace, ActionSpace>,
     multiLayerConfiguration: MultiLayerConfiguration,
     val gamma: Float = 0.99f,
@@ -23,18 +23,27 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
 
     val replayMemory = MemoryBuffer<FloatArray, Int>(replayMemorySize)
 
-    var model: MultiLayerNetwork
-    var targetModel: MultiLayerNetwork
+    var modelA: MultiLayerNetwork
+    var targetModelA: MultiLayerNetwork
+    var modelB: MultiLayerNetwork
+    var targetModelB: MultiLayerNetwork
 
     var stepCount = 0
 
     init {
-        this.model = MultiLayerNetwork(multiLayerConfiguration)
-        this.model.init()
+        this.modelA = MultiLayerNetwork(multiLayerConfiguration)
+        this.modelA.init()
 
-        this.targetModel = MultiLayerNetwork(multiLayerConfiguration)
-        this.targetModel.init()
-        this.targetModel.setParams(this.model.params().dup())
+        this.targetModelA = MultiLayerNetwork(multiLayerConfiguration)
+        this.targetModelA.init()
+        this.targetModelA.setParams(this.modelA.params().dup())
+
+        this.modelB = MultiLayerNetwork(multiLayerConfiguration)
+        this.modelB.init()
+
+        this.targetModelB = MultiLayerNetwork(multiLayerConfiguration)
+        this.targetModelB.init()
+        this.targetModelB.setParams(this.modelB.params().dup())
     }
 
     override fun trainStep(state: FloatArray): Step<FloatArray, Int> {
@@ -46,28 +55,32 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
         if(stepCount % trainPeriod == 0 && this.replayMemory.size > batchSize) {
             val samples = this.replayMemory.sample(batchSize)
 
-            val futureRewards = this.targetModel.output(samples.nextStates().toINDArray())
+            val futureRewards = this.targetModelA.output(samples.nextStates().toINDArray())
             val rewards = samples.rewards().toINDArray()
             val done = samples.done().toINDArray().castTo(DataType.INT32)
             val notDone = Nd4j.onesLike(done) - done
 
             // Compute updated Q-values
+//            val updatedQValues = rewards.mul(done) + (rewards + gamma * futureRewards.max(1)).mul(notDone)
             val updatedQValues = (rewards + gamma * futureRewards.max(1)).mul(notDone)
 
             // Create a mask for action that were performed
             val masks = NDBase().oneHot(samples.actions().toTypedArray().toIntArray().toINDArray(), 2, 1, 1.0, 0.0)
 
             // Fit the model by computing the expected q-values
-            val qValues = model.output(samples.states().toINDArray())
+            val qValues = modelA.output(samples.states().toINDArray())
 
+            // val update = qAction + invertedMasks.mul(updatedQValues.reshape(batchSize.toLong(), 1))
+            //val update = qValues + masks.mul(updatedQValues.reshape(batchSize.toLong(), 1))
             val update = ((Nd4j.onesLike(masks) - masks) * qValues) + masks.mul(updatedQValues.reshape(batchSize.toLong(), 1))
 
-            model.fit(samples.states().toINDArray(), update)
+            // FIXME
+            modelA.fit(samples.states().toINDArray(), update)
 //            println("Estimated loss: ${update.squaredDistance(qValues)}")
 
             // Eventually update the target model
             if(stepCount % updateTargetModelPeriod == 0) {
-                this.targetModel.setParams(this.model.params().dup())
+                this.targetModelA.setParams(this.modelA.params().dup())
             }
         }
 
@@ -89,7 +102,7 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
         } else {
             // Action from model
             val input = listOf(state).toINDArray()
-            val output = model.output(input)
+            val output = modelA.output(input)
 
             output.argMax().getInt(0)
         }

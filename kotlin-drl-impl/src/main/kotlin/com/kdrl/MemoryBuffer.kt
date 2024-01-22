@@ -1,6 +1,4 @@
-package com.kdrl.dqn
-
-import com.kdrl.Step
+package com.kdrl
 
 class MemoryBuffer<State, Action>(val maxSize: Int) {
 

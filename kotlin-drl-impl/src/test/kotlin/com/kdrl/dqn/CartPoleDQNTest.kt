@@ -17,7 +17,7 @@ class CartPoleDQNTest {
     @Test
     fun testCartPoleDQN() {
         val innerLayersSize = 128
-        val environment = CartPole()
+        val environment = CartPole(maxEpisodeLength = 500)
         val multiLayerConfiguration = NeuralNetConfiguration.Builder()
             .weightInit(WeightInit.XAVIER)
             .updater(Adam(1e-4))
@@ -31,6 +31,8 @@ class CartPoleDQNTest {
             .build()
         val dqn = DQN(environment, multiLayerConfiguration)
 
-        dqn.train(1000)
+        dqn.train(1000) { episodeCount, cumulativeReward ->
+            println("Episode #$episodeCount: $cumulativeReward")
+        }
     }
 }
