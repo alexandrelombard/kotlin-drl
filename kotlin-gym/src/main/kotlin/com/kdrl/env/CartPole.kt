@@ -7,6 +7,7 @@ import com.kdrl.space.Discrete
 import kotlin.math.cos
 import kotlin.math.pow
 import kotlin.math.sin
+import kotlin.random.Random
 
 class CartPole(
     val gravity: Float = 9.8f,
@@ -15,7 +16,8 @@ class CartPole(
     val length: Float = 0.5f,
     val forceMag: Float = 10.0f,
     val maxEpisodeLength: Int = 100,
-    val tau: Float = 0.02f) : IEnvironment<FloatArray, Int, Box<FloatArray>, Discrete> {
+    val tau: Float = 0.02f,
+    private val random: Random = Random.Default) : IEnvironment<FloatArray, Int, Box<FloatArray>, Discrete> {
 
     val description = "Reproduction in Kotlin of the environment CartPole-v1"
 
@@ -79,7 +81,13 @@ class CartPole(
         return Step(state.toObservation(), action, nextState.toObservation(), reward, done)
     }
 
-    data class InternalState(var position: Float = 0f, var velocity: Float = 0f, var poleAngle: Float = 0.0f, var poleAngularVelocity: Float = 0.0f) {
+    // All observations are assigned a uniformly random value in [-0.05, 0.05]
+    inner class InternalState(
+        val position: Float = random.nextFloat() * 0.1f - 0.05f,
+        val velocity: Float = random.nextFloat() * 0.1f - 0.05f,
+        val poleAngle: Float = random.nextFloat() * 0.1f - 0.05f,
+        val poleAngularVelocity: Float = random.nextFloat() * 0.1f - 0.05f) {
+
         fun toObservation(): FloatArray {
             return floatArrayOf(position, velocity, poleAngle, poleAngularVelocity)
         }
