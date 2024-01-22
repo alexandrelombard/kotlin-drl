@@ -71,7 +71,8 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
             val notDone = Nd4j.onesLike(done) - done
 
             // Compute updated Q-values
-            val updatedQValues = rewards.mul(done) + (rewards + gamma * futureRewards.max(1)).mul(notDone)
+//            val updatedQValues = rewards.mul(done) + (rewards + gamma * futureRewards.max(1)).mul(notDone)
+            val updatedQValues = (rewards + gamma * futureRewards.max(1)).mul(notDone)
 
             // Create a mask for action that were performed
             val masks = NDBase().oneHot(samples.actions().toTypedArray().toIntArray().toINDArray(), 2, 1, 1.0, 0.0)
@@ -80,10 +81,12 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
             val qValues = model.output(samples.states().toINDArray())
 
             // val update = qAction + invertedMasks.mul(updatedQValues.reshape(batchSize.toLong(), 1))
-            val update = qValues + masks.mul(updatedQValues.reshape(batchSize.toLong(), 1))
+            //val update = qValues + masks.mul(updatedQValues.reshape(batchSize.toLong(), 1))
+            val update = ((Nd4j.onesLike(masks) - masks) * qValues) + masks.mul(updatedQValues.reshape(batchSize.toLong(), 1))
 
             // FIXME
             model.fit(samples.states().toINDArray(), update)
+//            println("Estimated loss: ${update.squaredDistance(qValues)}")
 
             // Eventually update the target model
             if(stepCount % updateTargetModelPeriod == 0) {

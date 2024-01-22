@@ -31,6 +31,10 @@ operator fun INDArray.times(n: Number): INDArray {
     return this.mul(n)
 }
 
+operator fun INDArray.times(i: INDArray): INDArray {
+    return this.mul(i)
+}
+
 operator fun Number.times(i: INDArray): INDArray {
     return i.mul(this)
 }
