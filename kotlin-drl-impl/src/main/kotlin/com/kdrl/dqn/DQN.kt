@@ -40,7 +40,7 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
     val trainPeriod: Int = 1,
     val updateTargetModel: (dqn: DQN<*, *>) -> Unit = TARGET_UPDATE_BY_COPY(1),
     val batchSize: Int = 128,
-    val replayMemorySize: Int = 10000): IDRLTrainer<FloatArray, Int, ObservationSpace, ActionSpace> {
+    replayMemorySize: Int = 10000): IDRLTrainer<FloatArray, Int, ObservationSpace, ActionSpace> {
 
     val replayMemory = MemoryBuffer<FloatArray, Int>(replayMemorySize)
 
