@@ -12,12 +12,33 @@ import org.nd4j.linalg.factory.ops.NDBase
 import kotlin.math.max
 import kotlin.random.Random
 
+/**
+ * Update a target model by copy: every updateTargetModelPeriod, the model is copied into the target model
+ * @param dqn the DQN to update
+ * @param updateTargetModelPeriod the update period
+ */
+fun updateTargetModelByCopy(dqn: DQN<*,*>, updateTargetModelPeriod: Int = 1) {
+    if(dqn.stepCount % updateTargetModelPeriod == 0) {
+        dqn.targetModel.setParams(dqn.model.params().dup())
+    }
+}
+
+/**
+ * Update a target model by Polyak averaging: every step, the target model parameters p are set to tau * p + (1 - tau) * p'
+ * where p' are the model parameters
+ * @param dqn the DQN to update
+ * @param tau the weight given to the current target model parameters (in the interval [0.0, 1.0]
+ */
+fun updateTargetModelByPolyakAveraging(dqn: DQN<*,*>, tau: Double = 0.99) {
+    dqn.targetModel.setParams(dqn.targetModel.params() * tau + (1.0 - tau) * dqn.model.params())
+}
+
 class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
     override val environment: IEnvironment<FloatArray, Int, ObservationSpace, ActionSpace>,
     multiLayerConfiguration: MultiLayerConfiguration,
     val gamma: Float = 0.99f,
     val trainPeriod: Int = 1,
-    val updateTargetModelPeriod: Int = 2,
+    val updateTargetModel: (dqn: DQN<*, *>) -> Unit = TARGET_UPDATE_BY_COPY(1),
     val batchSize: Int = 128,
     val replayMemorySize: Int = 10000): IDRLTrainer<FloatArray, Int, ObservationSpace, ActionSpace> {
 
@@ -65,9 +86,7 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
             model.fit(samples.states().toINDArray(), update)
 
             // Eventually update the target model
-            if(stepCount % updateTargetModelPeriod == 0) {
-                this.targetModel.setParams(this.model.params().dup())
-            }
+            updateTargetModel(this)
         }
 
         stepCount++
@@ -94,5 +113,10 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
         }
 
         return action
+    }
+
+    companion object {
+        fun TARGET_UPDATE_BY_COPY(period: Int): (dqn: DQN<*, *>)->Unit = { updateTargetModelByCopy(it, period) }
+        fun TARGET_UPDATE_BY_POLYAK_AVERAGING(tau: Double): (dqn: DQN<*, *>)->Unit = { updateTargetModelByPolyakAveraging(it, tau) }
     }
 }
