@@ -116,7 +116,9 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
     }
 
     companion object {
+        // region Target model update strategies
         fun TARGET_UPDATE_BY_COPY(period: Int): (dqn: DQN<*, *>)->Unit = { updateTargetModelByCopy(it, period) }
         fun TARGET_UPDATE_BY_POLYAK_AVERAGING(tau: Double): (dqn: DQN<*, *>)->Unit = { updateTargetModelByPolyakAveraging(it, tau) }
+        // endregion
     }
 }
