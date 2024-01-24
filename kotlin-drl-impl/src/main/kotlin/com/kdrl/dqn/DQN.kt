@@ -46,7 +46,7 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
 
     val replayMemory = MemoryBuffer<FloatArray, Int>(replayMemorySize)
 
-    val model: MultiLayerNetwork
+    val model: NeuralNetwork
     val targetModel: MultiLayerNetwork
 
     var stepCount = 0
