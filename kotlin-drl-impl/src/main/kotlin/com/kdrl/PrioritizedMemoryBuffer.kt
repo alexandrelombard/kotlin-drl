@@ -1,8 +1,9 @@
 package com.kdrl
 
-class MemoryBuffer<State, Action>(val maxSize: Int) {
+class PrioritizedMemoryBuffer<State, Action>(val maxSize: Int) {
 
     private val buffer = arrayListOf<Step<State, Action>>()
+    private val priorities = arrayListOf<Double>()
 
     val size: Int
         get() = this.buffer.size

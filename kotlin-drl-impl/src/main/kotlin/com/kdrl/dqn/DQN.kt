@@ -7,6 +7,7 @@ import com.kdrl.space.ISpace
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
 import org.nd4j.linalg.api.buffer.DataType
+import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.factory.ops.NDBase
 import kotlin.math.max
@@ -17,7 +18,7 @@ import kotlin.random.Random
  * @param dqn the DQN to update
  * @param updateTargetModelPeriod the update period
  */
-fun updateTargetModelByCopy(dqn: DQN<*,*>, updateTargetModelPeriod: Int = 1) {
+fun updateTargetModelByCopy(dqn: DQN<*,*>, updateTargetModelPeriod: Int = 4) {
     if(dqn.stepCount % updateTargetModelPeriod == 0) {
         dqn.targetModel.setParams(dqn.model.params().dup())
     }
@@ -38,14 +39,15 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
     multiLayerConfiguration: MultiLayerConfiguration,
     val gamma: Float = 0.99f,
     val trainPeriod: Int = 1,
-    val updateTargetModel: (dqn: DQN<*, *>) -> Unit = TARGET_UPDATE_BY_COPY(1),
+    val updateTargetModel: (dqn: DQN<*, *>) -> Unit = TARGET_UPDATE_BY_COPY(4),
     val batchSize: Int = 128,
+    val doubleDqn: Boolean = true,
     replayMemorySize: Int = 10000): IDRLTrainer<FloatArray, Int, ObservationSpace, ActionSpace> {
 
     val replayMemory = MemoryBuffer<FloatArray, Int>(replayMemorySize)
 
-    var model: MultiLayerNetwork
-    var targetModel: MultiLayerNetwork
+    val model: MultiLayerNetwork
+    val targetModel: MultiLayerNetwork
 
     var stepCount = 0
 
@@ -67,23 +69,43 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
         if(stepCount % trainPeriod == 0 && this.replayMemory.size > batchSize) {
             val samples = this.replayMemory.sample(batchSize)
 
-            val futureRewards = this.targetModel.output(samples.nextStates().toINDArray())
+            val states = samples.states().toINDArray()
+            val nextStates = samples.nextStates().toINDArray()
+            val actions = samples.actions().toTypedArray().toIntArray().toINDArray()
             val rewards = samples.rewards().toINDArray()
             val done = samples.done().toINDArray().castTo(DataType.INT32)
             val notDone = Nd4j.onesLike(done) - done
 
-            // Compute updated Q-values
-            val updatedQValues = (rewards + gamma * futureRewards.max(1)).mul(notDone)
-
             // Create a mask for action that were performed
-            val masks = NDBase().oneHot(samples.actions().toTypedArray().toIntArray().toINDArray(), 2, 1, 1.0, 0.0)
+            val masks = NDBase().oneHot(actions, 2, 1, 1.0, 0.0)
 
-            // Fit the model by computing the expected q-values
-            val qValues = model.output(samples.states().toINDArray())
+            // Get the current Q-values from the model
+            val qValues = this.model.output(states)
 
-            val update = ((Nd4j.onesLike(masks) - masks) * qValues) + masks.mul(updatedQValues.reshape(batchSize.toLong(), 1))
+            // Estimate future rewards using target model
+            val update: INDArray
 
-            model.fit(samples.states().toINDArray(), update)
+            if(doubleDqn) {
+                val futureRewards = this.model.output(samples.nextStates().toINDArray())
+                val futureActions = this.targetModel.output(samples.nextStates().toINDArray()).argMax(1)
+                val futureActionsMask = NDBase().oneHot(futureActions, 2, 1, 1.0, 0.0)
+
+                // Compute updated Q-values
+                val updatedQValues = (rewards + gamma * (futureRewards * futureActionsMask).sum(1)).mul(notDone)
+
+                // Fit the model by computing the expected q-values
+                update = ((Nd4j.onesLike(masks) - masks) * qValues) + masks.mul(updatedQValues.reshape(batchSize.toLong(), 1))
+            } else {
+                val futureRewards = this.targetModel.output(samples.nextStates().toINDArray())
+
+                // Compute updated Q-values
+                val updatedQValues = (rewards + gamma * futureRewards.max(1)).mul(notDone)
+
+                // Fit the model by computing the expected q-values
+                update = ((Nd4j.onesLike(masks) - masks) * qValues) + masks.mul(updatedQValues.reshape(batchSize.toLong(), 1))
+            }
+
+            this.model.fit(states, update)
 
             // Eventually update the target model
             updateTargetModel(this)
@@ -117,7 +139,14 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
 
     companion object {
         // region Target model update strategies
+        /**
+         * @param updateTargetModelPeriod the update period
+         */
         fun TARGET_UPDATE_BY_COPY(period: Int): (dqn: DQN<*, *>)->Unit = { updateTargetModelByCopy(it, period) }
+
+        /**
+         * @param tau the weight given to the current target model parameters (in the interval [0.0, 1.0]
+         */
         fun TARGET_UPDATE_BY_POLYAK_AVERAGING(tau: Double): (dqn: DQN<*, *>)->Unit = { updateTargetModelByPolyakAveraging(it, tau) }
         // endregion
     }

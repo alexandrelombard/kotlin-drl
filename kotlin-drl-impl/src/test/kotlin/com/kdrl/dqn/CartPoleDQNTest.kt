@@ -29,7 +29,30 @@ class CartPoleDQNTest {
             )
             .backpropType(BackpropType.Standard)
             .build()
-        val dqn = DQN(environment, multiLayerConfiguration)
+        val dqn = DQN(environment, multiLayerConfiguration, doubleDqn = false)
+
+        dqn.train(1000) { episodeCount, cumulativeReward ->
+            println("$episodeCount\t$cumulativeReward")
+        }
+    }
+
+    @Test
+    fun testCartPoleDDQN() {
+        val innerLayersSize = 128
+        val environment = CartPole(maxEpisodeLength = 500)
+        val multiLayerConfiguration = NeuralNetConfiguration.Builder()
+            .weightInit(WeightInit.XAVIER)
+            .updater(Adam(1e-4))
+            .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+            .list(
+                DenseLayer.Builder().nIn(4).nOut(innerLayersSize).activation(Activation.RELU).build(),
+                DenseLayer.Builder().nIn(innerLayersSize).nOut(innerLayersSize).activation(Activation.RELU).build(),
+                OutputLayer.Builder(LossFunctions.LossFunction.MSE).nIn(innerLayersSize).nOut(environment.actionSpace.size).activation(Activation.IDENTITY).lossFunction(LossFunctions.LossFunction.MSE).build()
+            )
+            .backpropType(BackpropType.Standard)
+            .build()
+        val dqn = DQN(environment, multiLayerConfiguration, doubleDqn = true,
+            updateTargetModel = DQN.TARGET_UPDATE_BY_POLYAK_AVERAGING(0.9))
 
         dqn.train(1000) { episodeCount, cumulativeReward ->
             println("$episodeCount\t$cumulativeReward")
