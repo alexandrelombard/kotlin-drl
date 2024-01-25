@@ -2,10 +2,10 @@ package com.kdrl.space
 
 import kotlin.random.Random
 
-class Box<Observation>(
+class Box<T>(
     val low: FloatArray,
     val high: FloatArray,
-    val shape: IntArray, override val random: Random = Random) : ISpace<Observation> {
+    val shape: IntArray, override val random: Random = Random) : ISpace<T> {
     init {
         if(low.size != high.size) {
             throw IllegalArgumentException("Low and High sizes must match")
