@@ -96,4 +96,30 @@ class CartPoleDQNTest {
 
         dqn.train(1000, this::resultFormater)
     }
+
+    @Test
+    fun testCartPoleDuelingDDQN() {
+        val innerLayersSize = 128
+        val environment = CartPole(maxEpisodeLength = 500)
+        val neuralNetConfiguration = NeuralNetConfiguration.Builder()
+            .updater(Adam(1e-4))
+            .weightInit(WeightInit.XAVIER)
+            .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+            .graphBuilder()
+            .addInputs("Input")
+            .addLayer("F1", DenseLayer.Builder().nIn(4).nOut(innerLayersSize).activation(Activation.RELU).build(), "Input")
+            .addLayer("F2", DenseLayer.Builder().nIn(innerLayersSize).nOut(innerLayersSize).activation(Activation.RELU).build(), "F1")
+            .addLayer("V1", DenseLayer.Builder().nIn(innerLayersSize).nOut(1).activation(Activation.IDENTITY).build(), "F2")
+            .addLayer("A1", DenseLayer.Builder().nIn(innerLayersSize).nOut(environment.actionSpace.size).activation(Activation.IDENTITY).build(), "F2")
+            .addVertex("AAvg", ElementWiseVertex(ElementWiseVertex.Op.Average), "A1")
+            .addVertex("A2", ElementWiseVertex(ElementWiseVertex.Op.Subtract), "A1", "AAvg")
+            .addVertex("Q", ElementWiseVertex(ElementWiseVertex.Op.Add), "V1", "A2")
+            .setOutputs("Q")
+            .backpropType(BackpropType.Standard)
+            .build()
+
+        val dqn = DQN(environment, neuralNetConfiguration, doubleDqn = true)
+
+        dqn.train(1000, this::resultFormater)
+    }
 }
