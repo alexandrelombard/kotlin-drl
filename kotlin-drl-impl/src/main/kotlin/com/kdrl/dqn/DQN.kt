@@ -143,13 +143,15 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace> :
                 update = ((Nd4j.onesLike(masks) - masks) * qValues) + masks.mul(updatedQValues.reshape(batchSize.toLong(), 1))
             } else {
                 val targetOutput = this.targetModel.output(samples.nextStates().toINDArray())
+                val targetOutputShape = targetOutput.shape().toTypedArray().toLongArray()
                 val futureRewards = targetOutput.reshape(intArrayOf(samples.size, ((targetOutput.shape()[0] / samples.size).toInt())))
 
                 // Compute updated Q-values
                 val updatedQValues = (rewards + gamma * futureRewards.max(1)).mul(notDone)
 
                 // Fit the model by computing the expected q-values
-                update = ((Nd4j.onesLike(masks) - masks) * qValues) + masks.mul(updatedQValues.reshape(batchSize.toLong(), 1))
+                update = ((Nd4j.onesLike(masks) - masks) * qValues) + masks.mul(updatedQValues.reshape(batchSize.toLong(), 1)).reshape(*targetOutputShape)
+
             }
 
             this.model.fit(states, update)

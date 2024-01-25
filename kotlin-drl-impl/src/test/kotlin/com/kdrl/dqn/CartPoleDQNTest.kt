@@ -8,6 +8,8 @@ import org.deeplearning4j.nn.conf.NeuralNetConfiguration
 import org.deeplearning4j.nn.conf.graph.ElementWiseVertex
 import org.deeplearning4j.nn.conf.graph.MergeVertex
 import org.deeplearning4j.nn.conf.graph.ReshapeVertex
+import org.deeplearning4j.nn.conf.graph.StackVertex
+import org.deeplearning4j.nn.conf.graph.UnstackVertex
 import org.deeplearning4j.nn.conf.layers.DenseLayer
 import org.deeplearning4j.nn.conf.layers.OutputLayer
 import org.deeplearning4j.nn.graph.ComputationGraph
@@ -86,8 +88,7 @@ class CartPoleDQNTest {
             .addVertex("AAvg", ElementWiseVertex(ElementWiseVertex.Op.Average), "A1")
             .addVertex("A2", ElementWiseVertex(ElementWiseVertex.Op.Subtract), "A1", "AAvg")
             .addVertex("Q", ElementWiseVertex(ElementWiseVertex.Op.Add), "V1", "A2")
-            .addLayer("Output", OutputLayer.Builder().nIn(environment.actionSpace.size).nOut(environment.actionSpace.size).activation(Activation.IDENTITY).lossFunction(LossFunctions.LossFunction.MSE).build(), "Q")
-            .setOutputs("Output")
+            .setOutputs("Q")
             .build()
 
         val dqn = DQN(environment, neuralNetConfiguration, doubleDqn = false)
