@@ -59,6 +59,7 @@ class DDPG<ObservationSpace: ISpace<FloatArray>, ActionSpace: Box<FloatArray>> :
 
     override fun trainStep(state: FloatArray): Step<FloatArray, FloatArray> {
         // Run action, store the step in memory
+        TODO()
     }
 
     override fun act(observation: FloatArray): FloatArray {
@@ -66,10 +67,11 @@ class DDPG<ObservationSpace: ISpace<FloatArray>, ActionSpace: Box<FloatArray>> :
         val sampledActions = this.actorModel.output(Nd4j.create(observation))
 
         // Add some noise
-        val noise = noise()
+//        val noise = noise()
+        TODO()
     }
 
-    private fun noise(): INDArray {
-        Nd4j.
-    }
+//    private fun noise(): INDArray {
+//        Nd4j.n
+//    }
 }

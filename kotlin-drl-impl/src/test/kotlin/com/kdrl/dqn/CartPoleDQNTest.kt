@@ -88,7 +88,6 @@ class CartPoleDQNTest {
             .setOutputs("Q")
             .build()
 
-        val network = ComputationGraph(neuralNetConfiguration)
         val dqn = DQN(environment, neuralNetConfiguration, doubleDqn = false)
 
         dqn.train(1000, this::resultFormater)

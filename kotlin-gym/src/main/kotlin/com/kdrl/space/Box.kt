@@ -20,4 +20,8 @@ class Box<T>(
         this.size = this.shape.reduce(Int::times)
     }
 
+    fun sample(): FloatArray {
+        TODO()
+    }
+
 }
