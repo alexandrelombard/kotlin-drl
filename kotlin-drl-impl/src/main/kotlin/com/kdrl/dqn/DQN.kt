@@ -37,7 +37,9 @@ fun updateTargetModelByPolyakAveraging(dqn: DQN<*,*>, tau: Double = 0.99) {
     dqn.targetModel.setParams(dqn.targetModel.params() * tau + (1.0 - tau) * dqn.model.params())
 }
 
-class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace> : IDRLTrainer<FloatArray, Int, ObservationSpace, ActionSpace> {
+class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace> :
+    IDRLTrainer<FloatArray, Int, ObservationSpace, ActionSpace>,
+    IDRLPolicy<FloatArray, Int> {
     override val environment: IEnvironment<FloatArray, Int, ObservationSpace, ActionSpace>
 
     val gamma: Float
@@ -163,7 +165,7 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace> : I
     var epsilonDecay = 2e-5
     var minEpsilon = 0.05
 
-    fun act(state: FloatArray): Int {
+    override fun act(observation: FloatArray): Int {
         this.epsilon = max(minEpsilon, epsilon - epsilonDecay)
 
         val action = if(Random.nextFloat() < this.epsilon) {
@@ -171,7 +173,7 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace> : I
             environment.actionSpace.sample()
         } else {
             // Action from model
-            val input = listOf(state).toINDArray()
+            val input = listOf(observation).toINDArray()
             val output = model.output(input)
 
             output.argMax().getInt(0)
