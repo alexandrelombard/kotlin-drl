@@ -89,6 +89,7 @@ class CartPoleDQNTest {
             .addVertex("A2", ElementWiseVertex(ElementWiseVertex.Op.Subtract), "A1", "AAvg")
             .addVertex("Q", ElementWiseVertex(ElementWiseVertex.Op.Add), "V1", "A2")
             .setOutputs("Q")
+            .backpropType(BackpropType.Standard)
             .build()
 
         val dqn = DQN(environment, neuralNetConfiguration, doubleDqn = false)
