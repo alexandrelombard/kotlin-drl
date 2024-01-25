@@ -4,7 +4,10 @@ package com.kdrl.dqn
 import com.kdrl.*
 import com.kdrl.space.IDiscreteSpace
 import com.kdrl.space.ISpace
+import org.deeplearning4j.nn.conf.ComputationGraphConfiguration
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration
+import org.deeplearning4j.nn.conf.NeuralNetConfiguration
+import org.deeplearning4j.nn.graph.ComputationGraph
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
 import org.nd4j.linalg.api.buffer.DataType
 import org.nd4j.linalg.api.ndarray.INDArray
@@ -34,31 +37,71 @@ fun updateTargetModelByPolyakAveraging(dqn: DQN<*,*>, tau: Double = 0.99) {
     dqn.targetModel.setParams(dqn.targetModel.params() * tau + (1.0 - tau) * dqn.model.params())
 }
 
-class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace>(
-    override val environment: IEnvironment<FloatArray, Int, ObservationSpace, ActionSpace>,
-    multiLayerConfiguration: MultiLayerConfiguration,
-    val gamma: Float = 0.99f,
-    val trainPeriod: Int = 1,
-    val updateTargetModel: (dqn: DQN<*, *>) -> Unit = TARGET_UPDATE_BY_COPY(4),
-    val batchSize: Int = 128,
-    val doubleDqn: Boolean = true,
-    replayMemorySize: Int = 10000): IDRLTrainer<FloatArray, Int, ObservationSpace, ActionSpace> {
+class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace> : IDRLTrainer<FloatArray, Int, ObservationSpace, ActionSpace> {
+    override val environment: IEnvironment<FloatArray, Int, ObservationSpace, ActionSpace>
 
-    val replayMemory = MemoryBuffer<FloatArray, Int>(replayMemorySize)
+    val gamma: Float
+    val trainPeriod: Int
+    val updateTargetModel: (dqn: DQN<*, *>) -> Unit
+    val batchSize: Int
+    val doubleDqn: Boolean
 
-    val model: NeuralNetwork
-    val targetModel: MultiLayerNetwork
+    constructor(
+        environment: IEnvironment<FloatArray, Int, ObservationSpace, ActionSpace>,
+        multiLayerConfiguration: MultiLayerConfiguration,
+        gamma: Float = 0.99f,
+        trainPeriod: Int = 1,
+        updateTargetModel: (dqn: DQN<*, *>) -> Unit = TARGET_UPDATE_BY_COPY(4),
+        batchSize: Int = 128,
+        doubleDqn: Boolean = true,
+        replayMemorySize: Int = 10000
+    ) {
+        this.environment = environment
+        this.gamma = gamma
+        this.trainPeriod = trainPeriod
+        this.updateTargetModel = updateTargetModel
+        this.batchSize = batchSize
+        this.doubleDqn = doubleDqn
+        this.replayMemory = MemoryBuffer(replayMemorySize)
 
-    var stepCount = 0
-
-    init {
-        this.model = MultiLayerNetwork(multiLayerConfiguration)
+        this.model = MultiLayerNetwork(multiLayerConfiguration).wrap()
         this.model.init()
-
-        this.targetModel = MultiLayerNetwork(multiLayerConfiguration)
+        this.targetModel = MultiLayerNetwork(multiLayerConfiguration).wrap()
         this.targetModel.init()
         this.targetModel.setParams(this.model.params().dup())
     }
+
+    constructor(
+        environment: IEnvironment<FloatArray, Int, ObservationSpace, ActionSpace>,
+        computationGraphConfiguration: ComputationGraphConfiguration,
+        gamma: Float = 0.99f,
+        trainPeriod: Int = 1,
+        updateTargetModel: (dqn: DQN<*, *>) -> Unit = TARGET_UPDATE_BY_COPY(4),
+        batchSize: Int = 128,
+        doubleDqn: Boolean = true,
+        replayMemorySize: Int = 10000
+    ) {
+        this.environment = environment
+        this.gamma = gamma
+        this.trainPeriod = trainPeriod
+        this.updateTargetModel = updateTargetModel
+        this.batchSize = batchSize
+        this.doubleDqn = doubleDqn
+        this.replayMemory = MemoryBuffer(replayMemorySize)
+
+        this.model = ComputationGraph(computationGraphConfiguration).wrap()
+        this.model.init()
+        this.targetModel = ComputationGraph(computationGraphConfiguration).wrap()
+        this.targetModel.init()
+        this.targetModel.setParams(this.model.params().dup())
+    }
+
+    val replayMemory: MemoryBuffer<FloatArray, Int>
+
+    val model: NeuralNetworkWrapper<*>
+    val targetModel: NeuralNetworkWrapper<*>
+
+    var stepCount = 0
 
     override fun trainStep(state: FloatArray): Step<FloatArray, Int> {
         val action = this.act(state)
