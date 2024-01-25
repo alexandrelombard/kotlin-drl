@@ -1,13 +1,13 @@
 package com.kdrl
 
-class MemoryBuffer<State, Action>(val maxSize: Int) {
+class MemoryBuffer<State, Action>(val maxSize: Int): IMemoryBuffer<State, Action> {
 
     private val buffer = arrayListOf<Step<State, Action>>()
 
-    val size: Int
+    override val size: Int
         get() = this.buffer.size
 
-    fun push(step: Step<State, Action>) {
+    override fun push(step: Step<State, Action>) {
         buffer.add(step)
 
         if(buffer.size >= maxSize) {
@@ -15,7 +15,7 @@ class MemoryBuffer<State, Action>(val maxSize: Int) {
         }
     }
 
-    fun sample(sampleSize: Int): List<Step<State, Action>> {
+    override fun sample(sampleSize: Int): List<Step<State, Action>> {
         if(sampleSize < 0) {
             throw IllegalArgumentException("Sample size must be positive")
         }

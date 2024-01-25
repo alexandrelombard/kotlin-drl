@@ -9,6 +9,7 @@ import org.deeplearning4j.nn.conf.MultiLayerConfiguration
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration
 import org.deeplearning4j.nn.graph.ComputationGraph
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
+import org.deeplearning4j.optimize.listeners.ScoreIterationListener
 import org.nd4j.linalg.api.buffer.DataType
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.factory.Nd4j
@@ -141,7 +142,8 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace> :
                 // Fit the model by computing the expected q-values
                 update = ((Nd4j.onesLike(masks) - masks) * qValues) + masks.mul(updatedQValues.reshape(batchSize.toLong(), 1))
             } else {
-                val futureRewards = this.targetModel.output(samples.nextStates().toINDArray())
+                val targetOutput = this.targetModel.output(samples.nextStates().toINDArray())
+                val futureRewards = targetOutput.reshape(intArrayOf(samples.size, ((targetOutput.shape()[0] / samples.size).toInt())))
 
                 // Compute updated Q-values
                 val updatedQValues = (rewards + gamma * futureRewards.max(1)).mul(notDone)
