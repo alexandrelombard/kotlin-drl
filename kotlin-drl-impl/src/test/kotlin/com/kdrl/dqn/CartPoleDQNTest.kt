@@ -15,9 +15,16 @@ import org.nd4j.linalg.activations.Activation
 import org.nd4j.linalg.api.ops.impl.loss.HuberLoss
 import org.nd4j.linalg.learning.config.Adam
 import org.nd4j.linalg.lossfunctions.LossFunctions
+import java.text.NumberFormat
+import java.util.*
 import kotlin.test.Test
 
 class CartPoleDQNTest {
+
+    private fun resultFormater(episodeCount: Int, cumulativeReward: Double) {
+        println("$episodeCount\t${NumberFormat.getNumberInstance(Locale.FRANCE).format(cumulativeReward)}")
+    }
+
     @Test
     fun testCartPoleDQN() {
         // Checked, seems OK
@@ -36,9 +43,7 @@ class CartPoleDQNTest {
             .build()
         val dqn = DQN(environment, multiLayerConfiguration, doubleDqn = false)
 
-        dqn.train(1000) { episodeCount, cumulativeReward ->
-            println("$episodeCount\t$cumulativeReward")
-        }
+        dqn.train(1000, this::resultFormater)
     }
 
     @Test
@@ -60,9 +65,7 @@ class CartPoleDQNTest {
         val dqn = DQN(environment, multiLayerConfiguration, doubleDqn = true,
             updateTargetModel = DQN.TARGET_UPDATE_BY_POLYAK_AVERAGING(0.9))
 
-        dqn.train(1000) { episodeCount, cumulativeReward ->
-            println("$episodeCount\t$cumulativeReward")
-        }
+        dqn.train(1000, this::resultFormater)
     }
 
     @Test
@@ -88,8 +91,6 @@ class CartPoleDQNTest {
         val network = ComputationGraph(neuralNetConfiguration)
         val dqn = DQN(environment, neuralNetConfiguration, doubleDqn = false)
 
-        dqn.train(1000) { episodeCount, cumulativeReward ->
-            println("$episodeCount\t$cumulativeReward")
-        }
+        dqn.train(1000, this::resultFormater)
     }
 }
