@@ -45,7 +45,7 @@ class NNComputationGraph(network: ComputationGraph): NeuralNetworkWrapper<Comput
     }
 
     override fun output(input: INDArray): INDArray {
-         return Nd4j.toFlattened(*network.output(input))
+         return network.outputSingle(input)
     }
 
     override fun setParams(params: INDArray) {

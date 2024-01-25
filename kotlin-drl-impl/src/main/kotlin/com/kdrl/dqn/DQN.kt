@@ -132,8 +132,8 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace> :
             val update: INDArray
 
             if(doubleDqn) {
-                val futureRewards = this.model.output(samples.nextStates().toINDArray())
-                val futureActions = this.targetModel.output(samples.nextStates().toINDArray()).argMax(1)
+                val futureRewards = this.model.output(nextStates)
+                val futureActions = this.targetModel.output(nextStates).argMax(1)
                 val futureActionsMask = NDBase().oneHot(futureActions, 2, 1, 1.0, 0.0)
 
                 // Compute updated Q-values
@@ -142,15 +142,13 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace> :
                 // Fit the model by computing the expected q-values
                 update = ((Nd4j.onesLike(masks) - masks) * qValues) + masks.mul(updatedQValues.reshape(batchSize.toLong(), 1))
             } else {
-                val targetOutput = this.targetModel.output(samples.nextStates().toINDArray())
-                val targetOutputShape = targetOutput.shape().toTypedArray().toLongArray()
-                val futureRewards = targetOutput.reshape(intArrayOf(samples.size, ((targetOutput.shape()[0] / samples.size).toInt())))
+                val futureRewards = this.targetModel.output(nextStates)
 
                 // Compute updated Q-values
                 val updatedQValues = (rewards + gamma * futureRewards.max(1)).mul(notDone)
 
                 // Fit the model by computing the expected q-values
-                update = ((Nd4j.onesLike(masks) - masks) * qValues) + masks.mul(updatedQValues.reshape(batchSize.toLong(), 1)).reshape(*targetOutputShape)
+                update = ((Nd4j.onesLike(masks) - masks) * qValues) + masks.mul(updatedQValues.reshape(batchSize.toLong(), 1))
 
             }
 
