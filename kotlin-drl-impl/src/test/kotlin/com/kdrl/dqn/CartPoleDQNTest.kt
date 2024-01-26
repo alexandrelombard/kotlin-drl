@@ -50,6 +50,9 @@ class CartPoleDQNTest {
         dqn.train(1000, this::resultFormater)
     }
 
+    /**
+     *
+     */
     @Test
     fun testMountainCarDQN() {
         // Checked, seems OK
