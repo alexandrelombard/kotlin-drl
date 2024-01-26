@@ -17,6 +17,7 @@ class MountainCar(
     val maxSpeed: Float = 0.07f,
     val goalPosition: Float = 0.5f,
     val goalVelocity: Float = 0.0f,
+    val maxEpisodeLength: Int = 500,
     private val random: Random = Random.Default) : IEnvironment<FloatArray, Int, Box<FloatArray>, Discrete> {
     val description = "Reproduction in Kotlin of the environment MountainCar-v0"
 
@@ -52,7 +53,8 @@ class MountainCar(
         )
 
         // Check termination conditions
-        if(state.position >= goalPosition && state.velocity >= goalVelocity) {
+        val failure = episodeLength > maxEpisodeLength
+        if(failure || (state.position >= goalPosition && state.velocity >= goalVelocity)) {
             done = true
         }
 

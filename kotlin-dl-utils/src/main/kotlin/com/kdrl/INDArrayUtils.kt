@@ -38,3 +38,7 @@ operator fun INDArray.times(i: INDArray): INDArray {
 operator fun Number.times(i: INDArray): INDArray {
     return i.mul(this)
 }
+
+operator fun INDArray.unaryMinus(): INDArray {
+    return this.neg()
+}

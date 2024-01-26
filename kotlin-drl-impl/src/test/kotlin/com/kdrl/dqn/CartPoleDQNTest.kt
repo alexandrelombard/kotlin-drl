@@ -1,6 +1,7 @@
 package com.kdrl.dqn
 
 import com.kdrl.env.CartPole
+import com.kdrl.env.MountainCar
 import org.apache.commons.math3.geometry.spherical.twod.Vertex
 import org.deeplearning4j.nn.api.OptimizationAlgorithm
 import org.deeplearning4j.nn.conf.BackpropType
@@ -33,6 +34,27 @@ class CartPoleDQNTest {
         // Checked, seems OK
         val innerLayersSize = 128
         val environment = CartPole(maxEpisodeLength = 500)
+        val multiLayerConfiguration = NeuralNetConfiguration.Builder()
+            .weightInit(WeightInit.XAVIER)
+            .updater(Adam(1e-4))
+            .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+            .list(
+                DenseLayer.Builder().nIn(4).nOut(innerLayersSize).activation(Activation.RELU).build(),
+                DenseLayer.Builder().nIn(innerLayersSize).nOut(innerLayersSize).activation(Activation.RELU).build(),
+                OutputLayer.Builder(LossFunctions.LossFunction.MSE).nIn(innerLayersSize).nOut(environment.actionSpace.size).activation(Activation.IDENTITY).lossFunction(LossFunctions.LossFunction.MSE).build()
+            )
+            .backpropType(BackpropType.Standard)
+            .build()
+        val dqn = DQN(environment, multiLayerConfiguration, doubleDqn = false)
+
+        dqn.train(1000, this::resultFormater)
+    }
+
+    @Test
+    fun testMountainCarDQN() {
+        // Checked, seems OK
+        val innerLayersSize = 128
+        val environment = MountainCar(maxEpisodeLength = 500)
         val multiLayerConfiguration = NeuralNetConfiguration.Builder()
             .weightInit(WeightInit.XAVIER)
             .updater(Adam(1e-4))

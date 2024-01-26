@@ -15,6 +15,7 @@ class MountainCarContinuous(
     val maxSpeed: Float = 0.07f,
     val goalPosition: Float = 0.5f,
     val goalVelocity: Float = 0.0f,
+    val maxEpisodeLength: Int = 500,
     private val random: Random = Random.Default) : IEnvironment<FloatArray, FloatArray, Box<FloatArray>, Box<FloatArray>> {
     val description = "Reproduction in Kotlin of the environment MountainCarContinuous-v0"
 
@@ -52,7 +53,8 @@ class MountainCarContinuous(
         )
 
         // Check termination conditions
-        if(state.position >= goalPosition && state.velocity >= goalVelocity) {
+        val failure = episodeLength >= maxEpisodeLength
+        if(failure || (state.position >= goalPosition && state.velocity >= goalVelocity)) {
             done = true
         }
 
@@ -61,7 +63,7 @@ class MountainCarContinuous(
         this.state = nextState
 
         // Compute the reward
-        val reward = if(done) 100.0f else -0.1f * force.pow(2)
+        val reward = if(done && !failure) 100.0f else -0.1f * force.pow(2)
 
         return Step(state.toObservation(), action, nextState.toObservation(), reward, done)
     }
