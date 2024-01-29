@@ -51,7 +51,7 @@ class CartPoleDQNTest {
     }
 
     /**
-     *
+     * This function tests the DQN on the MountainCar environment
      */
     @Test
     fun testMountainCarDQN() {
@@ -63,7 +63,7 @@ class CartPoleDQNTest {
             .updater(Adam(1e-4))
             .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
             .list(
-                DenseLayer.Builder().nIn(4).nOut(innerLayersSize).activation(Activation.RELU).build(),
+                DenseLayer.Builder().nIn(2).nOut(innerLayersSize).activation(Activation.RELU).build(),
                 DenseLayer.Builder().nIn(innerLayersSize).nOut(innerLayersSize).activation(Activation.RELU).build(),
                 OutputLayer.Builder(LossFunctions.LossFunction.MSE).nIn(innerLayersSize).nOut(environment.actionSpace.size).activation(Activation.IDENTITY).lossFunction(LossFunctions.LossFunction.MSE).build()
             )

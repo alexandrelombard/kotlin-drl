@@ -123,7 +123,7 @@ class DQN<ObservationSpace: ISpace<FloatArray>, ActionSpace: IDiscreteSpace> :
             val notDone = Nd4j.onesLike(done) - done
 
             // Create a mask for action that were performed
-            val masks = NDBase().oneHot(actions, 2, 1, 1.0, 0.0)
+            val masks = NDBase().oneHot(actions, this.environment.actionSpace.size, 1, 1.0, 0.0)
 
             // Get the current Q-values from the model
             val qValues = this.model.output(states)
