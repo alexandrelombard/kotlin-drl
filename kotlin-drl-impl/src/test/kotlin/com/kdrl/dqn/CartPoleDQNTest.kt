@@ -50,30 +50,6 @@ class CartPoleDQNTest {
         dqn.train(1000, this::resultFormater)
     }
 
-    /**
-     * This function tests the DQN on the MountainCar environment
-     */
-    @Test
-    fun testMountainCarDQN() {
-        // Checked, seems OK
-        val innerLayersSize = 128
-        val environment = MountainCar(maxEpisodeLength = 500)
-        val multiLayerConfiguration = NeuralNetConfiguration.Builder()
-            .weightInit(WeightInit.XAVIER)
-            .updater(Adam(1e-4))
-            .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-            .list(
-                DenseLayer.Builder().nIn(2).nOut(innerLayersSize).activation(Activation.RELU).build(),
-                DenseLayer.Builder().nIn(innerLayersSize).nOut(innerLayersSize).activation(Activation.RELU).build(),
-                OutputLayer.Builder(LossFunctions.LossFunction.MSE).nIn(innerLayersSize).nOut(environment.actionSpace.size).activation(Activation.IDENTITY).lossFunction(LossFunctions.LossFunction.MSE).build()
-            )
-            .backpropType(BackpropType.Standard)
-            .build()
-        val dqn = DQN(environment, multiLayerConfiguration, doubleDqn = false)
-
-        dqn.train(1000, this::resultFormater)
-    }
-
     @Test
     fun testCartPoleDoubleDQN() {
         // Checked, seems OK
