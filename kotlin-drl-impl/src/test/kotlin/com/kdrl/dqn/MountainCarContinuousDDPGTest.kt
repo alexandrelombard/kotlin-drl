@@ -13,9 +13,16 @@ import org.deeplearning4j.nn.weights.WeightInit
 import org.nd4j.linalg.activations.Activation
 import org.nd4j.linalg.learning.config.Adam
 import org.nd4j.linalg.lossfunctions.LossFunctions
+import java.text.NumberFormat
+import java.util.*
 import kotlin.test.Test
 
 class MountainCarContinuousDDPGTest {
+
+    private fun resultFormater(episodeCount: Int, cumulativeReward: Double) {
+        println("$episodeCount\t${NumberFormat.getNumberInstance(Locale.FRANCE).format(cumulativeReward)}")
+    }
+
     @Test
     fun testMountainCarContinuousDDPG() {
         val innerLayersSize = 128
@@ -36,5 +43,7 @@ class MountainCarContinuousDDPGTest {
         val ddpg = DDPG(environment, actorConfiguration = multiLayerConfiguration,
             criticConfiguration = multiLayerConfiguration,
             updateTargetModel = TARGET_UPDATE_BY_POLYAK_AVERAGING(0.9))
+
+        ddpg.train(1000, this::resultFormater)
     }
 }
