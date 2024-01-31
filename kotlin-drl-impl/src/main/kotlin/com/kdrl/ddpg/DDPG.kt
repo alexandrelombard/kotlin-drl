@@ -113,7 +113,7 @@ class DDPG<ObservationSpace: ISpace<FloatArray>, ActionSpace: Box<FloatArray>> :
                 val criticLoss = Transforms.pow(criticValue - expectedCriticValue, 2).mean()
 
 //                this.criticModel.fit(Nd4j.hstack(states, actions), criticValue - criticLoss)
-                this.criticModel.updateWithExternalError(criticLoss)
+                this.criticModel.updateWithExternalError(Nd4j.hstack(states, actions), criticLoss)
             }
 
             // Perform training for actor
@@ -123,7 +123,7 @@ class DDPG<ObservationSpace: ISpace<FloatArray>, ActionSpace: Box<FloatArray>> :
                 val actorLoss = -criticValue.mean()
 
 //                this.actorModel.fit(states, modelActions + actorLoss)
-                this.actorModel.updateWithExternalError(actorLoss)
+                this.actorModel.updateWithExternalError(states, actorLoss)
             }
 
             updateTargetModel(this)
