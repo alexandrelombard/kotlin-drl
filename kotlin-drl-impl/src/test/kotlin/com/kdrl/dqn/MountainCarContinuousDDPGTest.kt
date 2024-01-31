@@ -27,12 +27,12 @@ class MountainCarContinuousDDPGTest {
     fun testMountainCarContinuousDDPG() {
         val innerLayersSize = 128
         val environment = MountainCarContinuous(maxEpisodeLength = 500)
-        val multiLayerConfiguration = NeuralNetConfiguration.Builder()
+        val actorConfiguration = NeuralNetConfiguration.Builder()
             .weightInit(WeightInit.XAVIER)
             .updater(Adam(1e-4))
             .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
             .list(
-                DenseLayer.Builder().nIn(4).nOut(innerLayersSize).activation(Activation.RELU).build(),
+                DenseLayer.Builder().nIn(2).nOut(innerLayersSize).activation(Activation.RELU).build(),
                 DenseLayer.Builder().nIn(innerLayersSize).nOut(innerLayersSize).activation(Activation.RELU).build(),
                 OutputLayer.Builder(LossFunctions.LossFunction.MSE).nIn(innerLayersSize).nOut(environment.actionSpace.shape[0]).activation(
                     Activation.IDENTITY).lossFunction(LossFunctions.LossFunction.MSE).build()
@@ -40,8 +40,21 @@ class MountainCarContinuousDDPGTest {
             .backpropType(BackpropType.Standard)
             .build()
 
-        val ddpg = DDPG(environment, actorConfiguration = multiLayerConfiguration,
-            criticConfiguration = multiLayerConfiguration,
+        val criticConfiguration = NeuralNetConfiguration.Builder()
+            .weightInit(WeightInit.XAVIER)
+            .updater(Adam(1e-4))
+            .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+            .list(
+                DenseLayer.Builder().nIn(environment.observationSpace.shape[0] + environment.actionSpace.shape[0]).nOut(innerLayersSize).activation(Activation.RELU).build(),
+                DenseLayer.Builder().nIn(innerLayersSize).nOut(innerLayersSize).activation(Activation.RELU).build(),
+                OutputLayer.Builder(LossFunctions.LossFunction.MSE).nIn(innerLayersSize).nOut(1).activation(
+                    Activation.IDENTITY).lossFunction(LossFunctions.LossFunction.MSE).build()
+            )
+            .backpropType(BackpropType.Standard)
+            .build()
+
+        val ddpg = DDPG(environment, actorConfiguration = actorConfiguration,
+            criticConfiguration = criticConfiguration,
             updateTargetModel = TARGET_UPDATE_BY_POLYAK_AVERAGING(0.9))
 
         ddpg.train(1000, this::resultFormater)

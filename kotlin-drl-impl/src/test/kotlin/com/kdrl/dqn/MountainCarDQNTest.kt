@@ -33,8 +33,7 @@ class MountainCarDQNTest {
             .list(
                 DenseLayer.Builder().nIn(2).nOut(innerLayersSize).activation(Activation.RELU).build(),
                 DenseLayer.Builder().nIn(innerLayersSize).nOut(innerLayersSize).activation(Activation.RELU).build(),
-                OutputLayer.Builder(LossFunctions.LossFunction.MSE).nIn(innerLayersSize).nOut(environment.actionSpace.size).activation(
-                    Activation.IDENTITY).lossFunction(LossFunctions.LossFunction.MSE).build()
+                OutputLayer.Builder(LossFunctions.LossFunction.MSE).nIn(innerLayersSize).nOut(environment.actionSpace.size).activation(Activation.IDENTITY).build()
             )
             .backpropType(BackpropType.Standard)
             .build()

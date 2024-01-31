@@ -3,6 +3,7 @@ package com.kdrl
 import org.deeplearning4j.nn.api.NeuralNetwork
 import org.deeplearning4j.nn.graph.ComputationGraph
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
+import org.deeplearning4j.nn.workspace.LayerWorkspaceMgr
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.factory.Nd4j
 
@@ -37,6 +38,14 @@ class NNMultiLayerNetwork(network: MultiLayerNetwork): NeuralNetworkWrapper<Mult
 
 fun MultiLayerNetwork.wrap(): NNMultiLayerNetwork {
     return NNMultiLayerNetwork(this)
+}
+
+fun MultiLayerNetwork.updateWithExternalError(error: INDArray, minibatchSize: Int = 32) {
+    val p = this.backpropGradient(error, null)
+    val gradient = p.first
+    this.updater.update(this, gradient, 0, 0, minibatchSize, LayerWorkspaceMgr.noWorkspaces())
+    val updateVector = gradient.gradient()
+    this.params().subi(updateVector)
 }
 
 class NNComputationGraph(network: ComputationGraph): NeuralNetworkWrapper<ComputationGraph>(network) {

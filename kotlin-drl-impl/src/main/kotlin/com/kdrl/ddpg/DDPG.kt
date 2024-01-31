@@ -5,6 +5,7 @@ import com.kdrl.space.Box
 import com.kdrl.space.ISpace
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
+import org.deeplearning4j.nn.workspace.LayerWorkspaceMgr
 import org.nd4j.autodiff.samediff.SameDiff
 import org.nd4j.linalg.api.buffer.DataType
 import org.nd4j.linalg.api.rng.distribution.Distribution
@@ -111,7 +112,8 @@ class DDPG<ObservationSpace: ISpace<FloatArray>, ActionSpace: Box<FloatArray>> :
                 val criticValue = this.criticModel.output(Nd4j.hstack(states, actions), true)
                 val criticLoss = Transforms.pow(criticValue - expectedCriticValue, 2).mean()
 
-                this.criticModel.fit(Nd4j.hstack(states, actions), criticValue - criticLoss)
+//                this.criticModel.fit(Nd4j.hstack(states, actions), criticValue - criticLoss)
+                this.criticModel.updateWithExternalError(criticLoss)
             }
 
             // Perform training for actor
@@ -120,7 +122,8 @@ class DDPG<ObservationSpace: ISpace<FloatArray>, ActionSpace: Box<FloatArray>> :
                 val criticValue = this.criticModel.output(Nd4j.hstack(states, modelActions), true)
                 val actorLoss = -criticValue.mean()
 
-                this.actorModel.fit(states, modelActions + actorLoss)
+//                this.actorModel.fit(states, modelActions + actorLoss)
+                this.actorModel.updateWithExternalError(actorLoss)
             }
 
             updateTargetModel(this)
