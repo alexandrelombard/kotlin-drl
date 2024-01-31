@@ -85,14 +85,14 @@ class PerceptronTest {
         val neuralNet = MultiLayerNetwork(conf)
         neuralNet.init()
 
-        // Building the XOR dataset
+        // Building the dataset
         val trainingSetSize = 100000
         val features = Nd4j.create(trainingSetSize, 2)
         val labels = Nd4j.create(trainingSetSize, 1)
 
         for(i in 0 until trainingSetSize) {
-            val f1 = Random.nextFloat() * 100
-            val f2 = Random.nextFloat() * 100
+            val f1 = Random.nextFloat() * 20
+            val f2 = Random.nextFloat() * 20
             val l = f1 * 5 + f2
 
             features.putScalar(intArrayOf(i, 0), f1)
