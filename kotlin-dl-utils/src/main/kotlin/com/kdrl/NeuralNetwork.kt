@@ -43,7 +43,7 @@ fun MultiLayerNetwork.wrap(): NNMultiLayerNetwork {
 fun MultiLayerNetwork.updateWithExternalError(input: INDArray, error: INDArray, minibatchSize: Int = 32) {
     this.input = input
     this.feedForward(true, false)
-    val p = this.backpropGradient(error * Nd4j.ones(128, 1), null)
+    val p = this.backpropGradient(error, null)
     val gradient = p.first
     this.updater.update(this, gradient, 0, 0, minibatchSize, LayerWorkspaceMgr.noWorkspaces())
     val updateVector = gradient.gradient()
