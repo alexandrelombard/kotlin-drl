@@ -108,7 +108,7 @@ class DDPG<ObservationSpace: ISpace<FloatArray>, ActionSpace: Box<FloatArray>> :
             run {
                 val targetActions = this.targetActorModel.output(nextStates, true)
                 val expectedCriticValue =
-                    rewards + this.gamma * this.targetCriticModel.output(Nd4j.hstack(nextStates, targetActions), true)
+                    rewards.reshape(-1, 1) + this.gamma * this.targetCriticModel.output(Nd4j.hstack(nextStates, targetActions), true)
                 val criticValue = this.criticModel.output(Nd4j.hstack(states, actions), true)
                 val criticLoss = Transforms.pow(criticValue - expectedCriticValue, 2).mean()
 
@@ -137,7 +137,7 @@ class DDPG<ObservationSpace: ISpace<FloatArray>, ActionSpace: Box<FloatArray>> :
 
     override fun act(observation: FloatArray): FloatArray {
         // Get actions from actor model
-        val sampledAction = this.actorModel.output(Nd4j.create(observation))
+        val sampledAction = this.actorModel.output(Nd4j.create(observation).reshape(1, -1))
 
         // Add some noise
         val noise = Nd4j.rand(noiseDistribution, *sampledAction.shape().toTypedArray().toLongArray())

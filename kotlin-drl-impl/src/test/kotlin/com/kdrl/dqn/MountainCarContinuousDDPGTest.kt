@@ -34,8 +34,7 @@ class MountainCarContinuousDDPGTest {
             .list(
                 DenseLayer.Builder().nIn(2).nOut(innerLayersSize).activation(Activation.RELU).build(),
                 DenseLayer.Builder().nIn(innerLayersSize).nOut(innerLayersSize).activation(Activation.RELU).build(),
-                OutputLayer.Builder(LossFunctions.LossFunction.MSE).nIn(innerLayersSize).nOut(environment.actionSpace.shape[0]).activation(
-                    Activation.IDENTITY).lossFunction(LossFunctions.LossFunction.MSE).build()
+                DenseLayer.Builder().nIn(innerLayersSize).nOut(environment.actionSpace.shape[0]).activation(Activation.IDENTITY).build()
             )
             .backpropType(BackpropType.Standard)
             .build()
@@ -45,10 +44,9 @@ class MountainCarContinuousDDPGTest {
             .updater(Adam(1e-4))
             .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
             .list(
-                DenseLayer.Builder().nIn(environment.observationSpace.shape[0] + environment.actionSpace.shape[0]).nOut(innerLayersSize).activation(Activation.RELU).build(),
+                DenseLayer.Builder().nIn(2 + 1).nOut(innerLayersSize).activation(Activation.RELU).build(),
                 DenseLayer.Builder().nIn(innerLayersSize).nOut(innerLayersSize).activation(Activation.RELU).build(),
-                OutputLayer.Builder(LossFunctions.LossFunction.MSE).nIn(innerLayersSize).nOut(1).activation(
-                    Activation.IDENTITY).lossFunction(LossFunctions.LossFunction.MSE).build()
+                DenseLayer.Builder().nIn(innerLayersSize).nOut(1).activation(Activation.IDENTITY).build()
             )
             .backpropType(BackpropType.Standard)
             .build()
