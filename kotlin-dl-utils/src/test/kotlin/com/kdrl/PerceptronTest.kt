@@ -16,6 +16,7 @@ import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.learning.config.Adam
 import org.nd4j.linalg.lossfunctions.LossFunctions
+import org.nd4j.linalg.lossfunctions.SameDiffLoss
 import org.nd4j.linalg.ops.transforms.Transforms
 import kotlin.random.Random
 import kotlin.test.Test
@@ -101,16 +102,19 @@ class PerceptronTest {
 
         // Train the neural net
         for(i in 0 until 10000) {
-            val output = neuralNet.output(features)
+            val minibatch = 32
             neuralNet.input = features
-            neuralNet.feedForward(true, false)
-            val error = labels.sub(output)
+            val outputs = neuralNet.feedForward(true, false)
+            val error = Transforms.pow(labels.sub(outputs.last()), 2.0)
             println(error.mean())
             val p = neuralNet.backpropGradient(error, null)
             val gradient = p.first
-            neuralNet.updater.update(neuralNet, gradient, 1, 1, features.shape()[0].toInt(), LayerWorkspaceMgr.noWorkspaces())
+            val iteration = 0
+            val epoch = 0
+            neuralNet.updater.update(neuralNet, gradient, iteration, epoch, minibatch, LayerWorkspaceMgr.noWorkspaces())
             val updateVector = gradient.gradient()
             neuralNet.params().subi(updateVector)
+
 //            // Predict
 //            val prediction = neuralNet.output(features)
 //
