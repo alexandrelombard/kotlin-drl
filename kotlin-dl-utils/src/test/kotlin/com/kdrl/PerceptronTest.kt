@@ -104,11 +104,11 @@ class PerceptronTest {
             val output = neuralNet.output(features)
             neuralNet.input = features
             neuralNet.feedForward(true, false)
-            val error = Transforms.pow(labels.sub(output), 2.0)
+            val error = labels.sub(output)
             println(error.mean())
             val p = neuralNet.backpropGradient(error, null)
             val gradient = p.first
-            neuralNet.updater.update(neuralNet, gradient, 0, 0, features.shape()[0].toInt(), LayerWorkspaceMgr.noWorkspaces())
+            neuralNet.updater.update(neuralNet, gradient, 1, 1, features.shape()[0].toInt(), LayerWorkspaceMgr.noWorkspaces())
             val updateVector = gradient.gradient()
             neuralNet.params().subi(updateVector)
 //            // Predict
