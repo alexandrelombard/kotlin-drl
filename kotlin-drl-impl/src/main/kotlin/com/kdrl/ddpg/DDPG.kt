@@ -110,10 +110,10 @@ class DDPG<ObservationSpace: ISpace<FloatArray>, ActionSpace: Box<FloatArray>> :
                 val expectedCriticValue =
                     rewards.reshape(-1, 1) + this.gamma * this.targetCriticModel.output(Nd4j.hstack(nextStates, targetActions), true)
                 val criticValue = this.criticModel.output(Nd4j.hstack(states, actions), true)
-                val criticLoss = Transforms.pow(criticValue - expectedCriticValue, 2).mean()
+//                val criticLoss = Transforms.pow(criticValue - expectedCriticValue, 2).mean()
 
-//                this.criticModel.fit(Nd4j.hstack(states, actions), criticValue - criticLoss)
-                this.criticModel.updateWithExternalError(Nd4j.hstack(states, actions), criticLoss)
+                this.criticModel.fit(Nd4j.hstack(states, actions), expectedCriticValue)
+//                this.criticModel.updateWithExternalError(Nd4j.hstack(states, actions), criticLoss)
             }
 
             // Perform training for actor

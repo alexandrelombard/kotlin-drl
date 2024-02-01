@@ -46,7 +46,7 @@ class MountainCarContinuousDDPGTest {
             .list(
                 DenseLayer.Builder().nIn(2 + 1).nOut(innerLayersSize).activation(Activation.RELU).build(),
                 DenseLayer.Builder().nIn(innerLayersSize).nOut(innerLayersSize).activation(Activation.RELU).build(),
-                DenseLayer.Builder().nIn(innerLayersSize).nOut(1).activation(Activation.IDENTITY).build()
+                OutputLayer.Builder(LossFunctions.LossFunction.MSE).nIn(innerLayersSize).nOut(1).activation(Activation.IDENTITY).build()
             )
             .backpropType(BackpropType.Standard)
             .build()
